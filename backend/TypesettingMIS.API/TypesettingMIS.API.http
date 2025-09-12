@@ -1,0 +1,6 @@
+@TypesettingMIS.API_HostAddress = http://localhost:5030
+
+GET {{TypesettingMIS.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

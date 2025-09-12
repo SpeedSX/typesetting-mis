@@ -7,6 +7,138 @@ node_modules/
 dist/
 build/
 
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+*.exe
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+*.swp
+*.swo
+*~
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+**/Properties/launchSettings.json
+
+# .NET Framework
+*.csproj.user
+*.vbproj.user
+*.fsproj.user
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+orleans.codegen.cs
+
+# .NET Core build outputs
+**/bin/
+**/obj/
+**/out/
+
+# .NET Core test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+
+# .NET Core publish
+**/publish/
+**/wwwroot/dist/
+
+# .NET Core local settings
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.json
+!appsettings.json
+!appsettings.Production.json
+
+# .NET Core secrets
+secrets.json
+
+# Entity Framework
+Migrations/
+*.edmx.diagram
+*.edmx.sql
+
+# Visual Studio
+.vs/
+*.sln.docstates
+*.userprefs
+*.usertasks
+*.vssscc
+*.vssscc
+*.vspscc
+*.vspscc
+*.scc
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# .NET Core CLI
+.dotnet/
+
+# Package managers
+packages/
+!packages/build/
+!packages/repositories.config
+
+# Database files
+*.mdf
+*.ldf
+*.ndf
+
+# SQL Server files
+*.bak
+*.trn
+
+# Redis
+dump.rdb
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Project-specific
+scripts/init-multiple-databases.sh
+*.ps1
+*.sh
+
+# Logs and temporary files
+*.tmp
+*.temp
+*.log
+*.out
+
+# IDE and editor files
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
 # Environment variables
 .env
 .env.local
@@ -88,31 +220,16 @@ public
 tmp/
 temp/
 
-# Editor directories and files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
 # OS generated files
-.DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db
-
-# Docker
-.dockerignore
 
 # Database
 *.db
 *.sqlite
-
-# Redis dump
-dump.rdb
 
 # Yarn
 .yarn/*
