@@ -14,8 +14,9 @@ import {
   Alert,
 } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { createCompany } from '../store/slices/companySlice';
+import { createCompany, clearError } from '../store/slices/companySlice';
 import type { CreateCompanyRequest, CompanySettings } from '../types/company';
+import { TIMEZONES, CURRENCIES, SUBSCRIPTION_PLANS } from '../constants/org';
 
 interface AddCompanyFormProps {
   open: boolean;
@@ -80,8 +81,8 @@ const AddCompanyForm: React.FC<AddCompanyFormProps> = ({ open, onClose }) => {
 
     if (!formData.domain.trim()) {
       errors.domain = 'Domain is required';
-    } else if (!/^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.?[a-zA-Z]{2,}$/.test(formData.domain)) {
-      errors.domain = 'Please enter a valid domain (e.g., example.com)';
+    } else if (!/^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/.test(formData.domain)) {
+      errors.domain = 'Enter a valid domain like example.com (no protocol, at least one dot)';
     }
 
     if (!settings.timezone) {
@@ -128,39 +129,10 @@ const AddCompanyForm: React.FC<AddCompanyFormProps> = ({ open, onClose }) => {
     });
     setSettings(defaultSettings);
     setValidationErrors({});
+    dispatch(clearError()); // Clear any stale errors
     onClose();
   };
 
-  const timezones = [
-    'UTC',
-    'America/New_York',
-    'America/Chicago',
-    'America/Denver',
-    'America/Los_Angeles',
-    'Europe/London',
-    'Europe/Paris',
-    'Europe/Berlin',
-    'Asia/Tokyo',
-    'Asia/Shanghai',
-    'Australia/Sydney',
-  ];
-
-  const currencies = [
-    'USD',
-    'EUR',
-    'GBP',
-    'JPY',
-    'CAD',
-    'AUD',
-    'CHF',
-    'CNY',
-  ];
-
-  const subscriptionPlans = [
-    'Basic',
-    'Professional',
-    'Enterprise',
-  ];
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -201,7 +173,7 @@ const AddCompanyForm: React.FC<AddCompanyFormProps> = ({ open, onClose }) => {
                 onChange={(e) => handleInputChange('settings.timezone', e.target.value)}
                 label="Timezone"
               >
-                {timezones.map((tz) => (
+                {TIMEZONES.map((tz) => (
                   <MenuItem key={tz} value={tz}>
                     {tz}
                   </MenuItem>
@@ -221,7 +193,7 @@ const AddCompanyForm: React.FC<AddCompanyFormProps> = ({ open, onClose }) => {
                 onChange={(e) => handleInputChange('settings.currency', e.target.value)}
                 label="Currency"
               >
-                {currencies.map((currency) => (
+                {CURRENCIES.map((currency) => (
                   <MenuItem key={currency} value={currency}>
                     {currency}
                   </MenuItem>
@@ -241,7 +213,7 @@ const AddCompanyForm: React.FC<AddCompanyFormProps> = ({ open, onClose }) => {
                 onChange={(e) => handleInputChange('subscriptionPlan', e.target.value)}
                 label="Subscription Plan"
               >
-                {subscriptionPlans.map((plan) => (
+                {SUBSCRIPTION_PLANS.map((plan) => (
                   <MenuItem key={plan} value={plan}>
                     {plan}
                   </MenuItem>

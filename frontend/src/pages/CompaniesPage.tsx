@@ -21,18 +21,19 @@ import { Add, Edit, Delete, Share } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchCompanies } from '../store/slices/companySlice';
 import InvitationGenerator from '../components/InvitationGenerator';
+import type { Company } from '../types/company';
 import AddCompanyForm from '../components/AddCompanyForm';
 import EditCompanyForm from '../components/EditCompanyForm';
 
 const CompaniesPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { companies, isLoading } = useAppSelector((state) => state.company);
-  const [invitationDialog, setInvitationDialog] = useState<{ open: boolean; company: any }>({
+  const [invitationDialog, setInvitationDialog] = useState<{ open: boolean; company: Company | null }>({
     open: false,
     company: null
   });
   const [addCompanyDialog, setAddCompanyDialog] = useState(false);
-  const [editCompanyDialog, setEditCompanyDialog] = useState<{ open: boolean; company: any }>({
+  const [editCompanyDialog, setEditCompanyDialog] = useState<{ open: boolean; company: Company | null }>({
     open: false,
     company: null
   });
@@ -41,7 +42,7 @@ const CompaniesPage: React.FC = () => {
     dispatch(fetchCompanies());
   }, [dispatch]);
 
-  const handleOpenInvitation = (company: any) => {
+  const handleOpenInvitation = (company: Company) => {
     setInvitationDialog({ open: true, company });
   };
 
@@ -57,7 +58,7 @@ const CompaniesPage: React.FC = () => {
     setAddCompanyDialog(false);
   };
 
-  const handleOpenEditCompany = (company: any) => {
+  const handleOpenEditCompany = (company: Company) => {
     setEditCompanyDialog({ open: true, company });
   };
 
@@ -141,6 +142,7 @@ const CompaniesPage: React.FC = () => {
                         color="info" 
                         onClick={() => handleOpenInvitation(company)}
                         title="Generate Invitation Link"
+                        aria-label="Generate Invitation Link"
                       >
                         <Share />
                       </IconButton>
@@ -149,6 +151,7 @@ const CompaniesPage: React.FC = () => {
                         color="primary"
                         onClick={() => handleOpenEditCompany(company)}
                         title="Edit Company"
+                        aria-label="Edit Company"
                       >
                         <Edit />
                       </IconButton>
@@ -156,6 +159,7 @@ const CompaniesPage: React.FC = () => {
                         size="small" 
                         color="error"
                         title="Delete Company"
+                        aria-label="Delete Company"
                       >
                         <Delete />
                       </IconButton>

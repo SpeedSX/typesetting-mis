@@ -14,8 +14,9 @@ import {
   Alert,
 } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { updateCompany } from '../store/slices/companySlice';
+import { updateCompany, clearError } from '../store/slices/companySlice';
 import type { Company, UpdateCompanyRequest, CompanySettings } from '../types/company';
+import { TIMEZONES, CURRENCIES, SUBSCRIPTION_PLANS } from '../constants/org';
 
 interface EditCompanyFormProps {
   open: boolean;
@@ -40,9 +41,9 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  // Initialize form data when company changes
+  // Initialize form data when dialog opens and company changes
   useEffect(() => {
-    if (company) {
+    if (open && company) {
       setFormData({
         name: company.name,
         subscriptionPlan: company.subscriptionPlan,
@@ -58,7 +59,7 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
         setSettings({ timezone: 'UTC', currency: 'USD' });
       }
     }
-  }, [company]);
+  }, [open, company]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     if (field.startsWith('settings.')) {
@@ -138,39 +139,10 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
       currency: 'USD',
     });
     setValidationErrors({});
+    dispatch(clearError()); // Clear any stale errors
     onClose();
   };
 
-  const timezones = [
-    'UTC',
-    'America/New_York',
-    'America/Chicago',
-    'America/Denver',
-    'America/Los_Angeles',
-    'Europe/London',
-    'Europe/Paris',
-    'Europe/Berlin',
-    'Asia/Tokyo',
-    'Asia/Shanghai',
-    'Australia/Sydney',
-  ];
-
-  const currencies = [
-    'USD',
-    'EUR',
-    'GBP',
-    'JPY',
-    'CAD',
-    'AUD',
-    'CHF',
-    'CNY',
-  ];
-
-  const subscriptionPlans = [
-    'Basic',
-    'Professional',
-    'Enterprise',
-  ];
 
   if (!company) {
     return null;
@@ -212,8 +184,9 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
                 value={settings.timezone}
                 onChange={(e) => handleInputChange('settings.timezone', e.target.value)}
                 label="Timezone"
+                aria-label="Company timezone"
               >
-                {timezones.map((tz) => (
+                {TIMEZONES.map((tz) => (
                   <MenuItem key={tz} value={tz}>
                     {tz}
                   </MenuItem>
@@ -232,8 +205,9 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
                 value={settings.currency}
                 onChange={(e) => handleInputChange('settings.currency', e.target.value)}
                 label="Currency"
+                aria-label="Company currency"
               >
-                {currencies.map((currency) => (
+                {CURRENCIES.map((currency) => (
                   <MenuItem key={currency} value={currency}>
                     {currency}
                   </MenuItem>
@@ -252,8 +226,9 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
                 value={formData.subscriptionPlan || ''}
                 onChange={(e) => handleInputChange('subscriptionPlan', e.target.value)}
                 label="Subscription Plan"
+                aria-label="Company subscription plan"
               >
-                {subscriptionPlans.map((plan) => (
+                {SUBSCRIPTION_PLANS.map((plan) => (
                   <MenuItem key={plan} value={plan}>
                     {plan}
                   </MenuItem>
@@ -272,6 +247,7 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
                 value={formData.isActive ? 'active' : 'inactive'}
                 onChange={(e) => handleInputChange('isActive', e.target.value === 'active')}
                 label="Status"
+                aria-label="Company status"
               >
                 <MenuItem value="active">Active</MenuItem>
                 <MenuItem value="inactive">Inactive</MenuItem>
