@@ -16,6 +16,9 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    /// <summary>
+    /// User login - returns JWT token and user information
+    /// </summary>
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
     {
@@ -29,6 +32,9 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// User registration - creates new user account
+    /// </summary>
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
     {
@@ -42,6 +48,9 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Refresh JWT token using refresh token
+    /// </summary>
     [HttpPost("refresh")]
     public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] string refreshToken)
     {
@@ -55,6 +64,9 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// User logout - invalidates refresh token
+    /// </summary>
     [HttpPost("logout")]
     [Authorize]
     public async Task<IActionResult> Logout([FromBody] string refreshToken)
@@ -63,6 +75,9 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Logged out successfully" });
     }
 
+    /// <summary>
+    /// Get current user information from JWT token
+    /// </summary>
     [HttpGet("me")]
     [Authorize]
     public async Task<ActionResult<UserDto>> GetCurrentUser()

@@ -23,6 +23,9 @@ import {
   People,
   Logout,
   AccountCircle,
+  Business,
+  Settings,
+  BarChart,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
@@ -59,7 +62,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     handleProfileMenuClose();
   };
 
-  const menuItems = [
+  // Check if user is admin
+  const isAdmin = user?.roleName?.toLowerCase() === 'admin';
+
+  const menuItems = isAdmin ? [
+    { text: 'Dashboard', icon: <Dashboard />, path: '/' },
+    { text: 'Companies', icon: <Business />, path: '/companies' },
+    { text: 'Users', icon: <People />, path: '/users' },
+    { text: 'Settings', icon: <Settings />, path: '/settings' },
+    { text: 'Reports', icon: <BarChart />, path: '/reports' },
+  ] : [
     { text: 'Dashboard', icon: <Dashboard />, path: '/' },
     { text: 'Customers', icon: <People />, path: '/customers' },
   ];
@@ -116,7 +128,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="body2" sx={{ mr: 2 }}>
-              {user?.companyName}
+              {user?.companyName} • {user?.roleName}
             </Typography>
             <IconButton
               size="large"

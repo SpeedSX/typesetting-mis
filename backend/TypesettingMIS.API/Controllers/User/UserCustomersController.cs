@@ -1,28 +1,30 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TypesettingMIS.Core.DTOs.Company;
 using TypesettingMIS.Core.DTOs.Customer;
 using TypesettingMIS.Core.Services;
 using TypesettingMIS.Infrastructure.Data;
 
-namespace TypesettingMIS.API.Controllers;
+namespace TypesettingMIS.API.Controllers.User;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/user/customers")]
 [Authorize]
-public class CustomersController : BaseController
+public class UserCustomersController : BaseController
 {
     private readonly ApplicationDbContext _context;
     private readonly ITenantAwareService _tenantAwareService;
 
-    public CustomersController(ApplicationDbContext context, ITenantContext tenantContext, ITenantAwareService tenantAwareService) 
+    public UserCustomersController(ApplicationDbContext context, ITenantContext tenantContext, ITenantAwareService tenantAwareService) 
         : base(tenantContext)
     {
         _context = context;
         _tenantAwareService = tenantAwareService;
     }
 
+    /// <summary>
+    /// Get all customers for the current tenant
+    /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers()
     {
@@ -49,6 +51,9 @@ public class CustomersController : BaseController
         return Ok(customers);
     }
 
+    /// <summary>
+    /// Get customer by ID
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<CustomerDto>> GetCustomer(Guid id)
     {
@@ -80,6 +85,9 @@ public class CustomersController : BaseController
         return Ok(customer);
     }
 
+    /// <summary>
+    /// Create new customer
+    /// </summary>
     [HttpPost]
     public async Task<ActionResult<CustomerDto>> CreateCustomer(CreateCustomerDto createCustomerDto)
     {
@@ -114,6 +122,9 @@ public class CustomersController : BaseController
         return CreatedAtAction(nameof(GetCustomer), new { id = customer.Id }, customerDto);
     }
 
+    /// <summary>
+    /// Update customer
+    /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCustomer(Guid id, UpdateCustomerDto updateCustomerDto)
     {
@@ -150,6 +161,9 @@ public class CustomersController : BaseController
         return NoContent();
     }
 
+    /// <summary>
+    /// Delete customer
+    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCustomer(Guid id)
     {

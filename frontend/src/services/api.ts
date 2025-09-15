@@ -64,52 +64,53 @@ class ApiService {
     return response.data;
   }
 
-  // Company endpoints
+  // Admin Company endpoints
   async getCompanies(): Promise<Company[]> {
-    const response: AxiosResponse<Company[]> = await this.api.get('/companies');
+    const response: AxiosResponse<Company[]> = await this.api.get('/admin/companies');
     return response.data;
   }
 
   async getCompany(id: string): Promise<Company> {
-    const response: AxiosResponse<Company> = await this.api.get(`/companies/${id}`);
+    const response: AxiosResponse<Company> = await this.api.get(`/admin/companies/${id}`);
     return response.data;
   }
 
   async createCompany(company: CreateCompanyRequest): Promise<Company> {
-    const response: AxiosResponse<Company> = await this.api.post('/companies', company);
+    const response: AxiosResponse<Company> = await this.api.post('/admin/companies', company);
     return response.data;
   }
 
   async updateCompany(id: string, company: UpdateCompanyRequest): Promise<void> {
-    await this.api.put(`/companies/${id}`, company);
+    await this.api.put(`/admin/companies/${id}`, company);
   }
 
   async deleteCompany(id: string): Promise<void> {
-    await this.api.delete(`/companies/${id}`);
+    await this.api.delete(`/admin/companies/${id}`);
   }
 
-  // Customer endpoints
+
+  // User Customer endpoints
   async getCustomers(): Promise<Customer[]> {
-    const response: AxiosResponse<Customer[]> = await this.api.get('/customers');
+    const response: AxiosResponse<Customer[]> = await this.api.get('/user/customers');
     return response.data;
   }
 
   async getCustomer(id: string): Promise<Customer> {
-    const response: AxiosResponse<Customer> = await this.api.get(`/customers/${id}`);
+    const response: AxiosResponse<Customer> = await this.api.get(`/user/customers/${id}`);
     return response.data;
   }
 
   async createCustomer(customer: CreateCustomerRequest): Promise<Customer> {
-    const response: AxiosResponse<Customer> = await this.api.post('/customers', customer);
+    const response: AxiosResponse<Customer> = await this.api.post('/user/customers', customer);
     return response.data;
   }
 
   async updateCustomer(id: string, customer: UpdateCustomerRequest): Promise<void> {
-    await this.api.put(`/customers/${id}`, customer);
+    await this.api.put(`/user/customers/${id}`, customer);
   }
 
   async deleteCustomer(id: string): Promise<void> {
-    await this.api.delete(`/customers/${id}`);
+    await this.api.delete(`/user/customers/${id}`);
   }
 }
 

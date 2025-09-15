@@ -15,6 +15,9 @@ public class HealthController : ControllerBase
         _context = context;
     }
 
+    /// <summary>
+    /// Health check endpoint - checks database connectivity
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> Get()
     {

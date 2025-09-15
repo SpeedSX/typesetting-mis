@@ -8,10 +8,11 @@ import { useAppDispatch, useAppSelector } from './hooks/redux';
 import { getCurrentUser } from './store/slices/authSlice';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
 import CustomersPage from './pages/CustomersPage';
+import CompaniesPage from './pages/CompaniesPage';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import RoleBasedDashboard from './components/RoleBasedDashboard';
 
 const theme = createTheme({
   palette: {
@@ -52,8 +53,9 @@ function AppContent() {
             <ProtectedRoute>
               <Layout>
                 <Routes>
-                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/" element={<RoleBasedDashboard />} />
                   <Route path="/customers" element={<CustomersPage />} />
+                  <Route path="/companies" element={<CompaniesPage />} />
                 </Routes>
               </Layout>
             </ProtectedRoute>

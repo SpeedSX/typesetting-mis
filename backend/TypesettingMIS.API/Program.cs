@@ -3,6 +3,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TypesettingMIS.Infrastructure;
 using TypesettingMIS.Infrastructure.Middleware;
+using TypesettingMIS.Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
+using TypesettingMIS.Core.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,5 +71,23 @@ app.UseAuthorization();
 app.UseMiddleware<TenantResolutionMiddleware>();
 
 app.MapControllers();
+
+// Seed initial data on startup
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+    var seeder = new DataSeeder(context, passwordHasher);
+    
+    try
+    {
+        await seeder.SeedAsync();
+        Console.WriteLine("✅ Initial data seeded successfully");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error seeding data: {ex.Message}");
+    }
+}
 
 app.Run();

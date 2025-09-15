@@ -5,21 +5,24 @@ using TypesettingMIS.Core.DTOs.Company;
 using TypesettingMIS.Core.Services;
 using TypesettingMIS.Infrastructure.Data;
 
-namespace TypesettingMIS.API.Controllers;
+namespace TypesettingMIS.API.Controllers.Admin;
 
 [ApiController]
-[Route("api/[controller]")]
-[Authorize]
-public class CompaniesController : BaseController
+[Route("api/admin/companies")]
+[Authorize(Roles = "Admin")]
+public class AdminCompaniesController : BaseController
 {
     private readonly ApplicationDbContext _context;
 
-    public CompaniesController(ApplicationDbContext context, ITenantContext tenantContext) 
+    public AdminCompaniesController(ApplicationDbContext context, ITenantContext tenantContext) 
         : base(tenantContext)
     {
         _context = context;
     }
 
+    /// <summary>
+    /// Get all companies (Admin only)
+    /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CompanyDto>>> GetCompanies()
     {
@@ -41,6 +44,9 @@ public class CompaniesController : BaseController
         return Ok(companies);
     }
 
+    /// <summary>
+    /// Get company by ID (Admin only)
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<CompanyDto>> GetCompany(Guid id)
     {
@@ -67,6 +73,9 @@ public class CompaniesController : BaseController
         return Ok(company);
     }
 
+    /// <summary>
+    /// Create new company (Admin only)
+    /// </summary>
     [HttpPost]
     public async Task<ActionResult<CompanyDto>> CreateCompany(CreateCompanyDto createCompanyDto)
     {
@@ -96,6 +105,9 @@ public class CompaniesController : BaseController
         return CreatedAtAction(nameof(GetCompany), new { id = company.Id }, companyDto);
     }
 
+    /// <summary>
+    /// Update company (Admin only)
+    /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCompany(Guid id, UpdateCompanyDto updateCompanyDto)
     {
@@ -126,6 +138,9 @@ public class CompaniesController : BaseController
         return NoContent();
     }
 
+    /// <summary>
+    /// Delete company (Admin only)
+    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCompany(Guid id)
     {

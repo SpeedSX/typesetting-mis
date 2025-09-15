@@ -39,7 +39,6 @@ public class TenantResolutionMiddleware
         var skipPaths = new[]
         {
             "/api/health",
-            "/api/seed",
             "/openapi",
             "/swagger"
         };
