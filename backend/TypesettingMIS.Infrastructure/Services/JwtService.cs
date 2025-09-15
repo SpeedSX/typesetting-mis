@@ -15,17 +15,21 @@ public class JwtService(IConfiguration configuration) : IJwtService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claimsList = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email ?? ""),
-            new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
-            new Claim(ClaimTypes.Role, user.Role?.Name ?? ""), // Add role to standard Role claim
-            new Claim("company_id", user.CompanyId.ToString()),
-            new Claim("role_id", user.RoleId.ToString()),
-            new Claim("role_name", user.Role?.Name ?? ""),
-            new Claim("is_active", user.IsActive.ToString())
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Email, user.Email ?? ""),
+            new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
+            new("company_id", user.CompanyId.ToString()),
+            new("role_id", user.RoleId.ToString()),
+            new("role_name", user.Role?.Name ?? ""),
+            new("is_active", user.IsActive.ToString())
         };
+
+        if (!string.IsNullOrWhiteSpace(user.Role?.Name))
+            claimsList.Add(new Claim(ClaimTypes.Role, user.Role!.Name));
+
+        var claims = claimsList.ToArray();
 
         var token = new JwtSecurityToken(
             issuer: configuration["Jwt:Issuer"],

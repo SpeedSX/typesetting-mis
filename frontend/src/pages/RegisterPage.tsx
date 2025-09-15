@@ -38,8 +38,10 @@ const RegisterPage: React.FC = () => {
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {
-    // Set company ID from URL parameter or use default for testing
-    const companyId = companyIdFromUrl || "11111111-1111-1111-1111-111111111111";
+// Set company ID from URL parameter; only fall back in development
+    const companyId =
+      companyIdFromUrl ||
+      (import.meta.env.DEV ? "11111111-1111-1111-1111-111111111111" : "");
     setFormData(prev => ({
       ...prev,
       companyId: companyId
@@ -95,10 +97,13 @@ const RegisterPage: React.FC = () => {
       newErrors.lastName = 'Last name is required';
     }
 
+    const guidRe = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
     if (!formData.companyId) {
       newErrors.companyId = 'Company is being loaded, please wait...';
+    } else if (!guidRe.test(formData.companyId)) {
+      newErrors.companyId = 'Invalid company link';
     }
-
+        
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

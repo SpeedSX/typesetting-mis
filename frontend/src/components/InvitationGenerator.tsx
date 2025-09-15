@@ -22,7 +22,7 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
   const [customMessage, setCustomMessage] = useState('');
 
   const baseUrl = window.location.origin;
-  const invitationUrl = `${baseUrl}/register?companyId=${companyId}`;
+  const invitationUrl = `${baseUrl}/register?companyId=${encodeURIComponent(companyId)}`;
   
   const fullInvitationText = customMessage 
     ? `${customMessage}\n\nRegistration Link: ${invitationUrl}`
@@ -94,7 +94,7 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
           readOnly: true,
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton onClick={handleCopyUrl} edge="end">
+              <IconButton onClick={handleCopyUrl} edge="end" aria-label="Copy invitation URL">
                 <ContentCopy />
               </IconButton>
             </InputAdornment>

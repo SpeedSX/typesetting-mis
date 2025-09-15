@@ -1,18 +1,23 @@
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
-import type { AuthResponse, LoginRequest, RegisterRequest } from '../types/auth';
+import type { AuthResponse, LoginRequest, RegisterRequest, User } from '../types/auth';
 import type { Company, CreateCompanyRequest, UpdateCompanyRequest } from '../types/company';
 import type { Customer, CreateCustomerRequest, UpdateCustomerRequest } from '../types/customer';
+import type { UserStats } from '../types/user';
 
 class ApiService {
   private api: AxiosInstance;
 
   constructor() {
+    const baseURL =
+      import.meta.env.VITE_API_BASE_URL ||
+      (typeof process !== 'undefined' ? process.env.REACT_APP_API_BASE_URL : '') ||
+      '/api';
+    
     this.api = axios.create({
-      baseURL: 'http://localhost:5030/api',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      withCredentials: true, // Enable cookies for httpOnly refresh tokens
+      baseURL,
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 10000,
+      withCredentials: true,
     });
 
     // Add request interceptor to include auth token
@@ -46,11 +51,14 @@ class ApiService {
   }
 
   async register(userData: RegisterRequest): Promise<AuthResponse> {
-    // Convert companyId string to GUID format for the backend
+    // Validate companyId as GUID before sending
     const registerData = {
       ...userData,
-      companyId: userData.companyId // The backend expects a GUID string
+      companyId: userData.companyId?.trim(),
     };
+    if (registerData.companyId && !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(registerData.companyId)) {
+      throw new Error('Invalid companyId (expected GUID).');
+    }
     const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/register', registerData);
     return response.data;
   }
@@ -74,11 +82,11 @@ class ApiService {
 
   // Admin User endpoints
   async getUsers(): Promise<any[]> {
-    const response: AxiosResponse<any[]> = await this.api.get('/admin/users');
+    const response: AxiosResponse<User[]> = await this.api.get('/admin/users');
     return response.data;
   }
 
-  async getUserStats(): Promise<any> {
+  async getUserStats(): Promise<UserStats> {
     const response: AxiosResponse<any> = await this.api.get('/admin/users/stats');
     return response.data;
   }
@@ -96,7 +104,7 @@ class ApiService {
   }
 
   async getCompany(id: string): Promise<Company> {
-    const response: AxiosResponse<Company> = await this.api.get(`/admin/companies/${id}`);
+    const response: AxiosResponse<Company> = await this.api.get(`/admin/companies/${encodeURIComponent(id)}`);
     return response.data;
   }
 
@@ -106,11 +114,11 @@ class ApiService {
   }
 
   async updateCompany(id: string, company: UpdateCompanyRequest): Promise<void> {
-    await this.api.put(`/admin/companies/${id}`, company);
+    await this.api.put(`/admin/companies/${encodeURIComponent(id)}`, company);
   }
 
   async deleteCompany(id: string): Promise<void> {
-    await this.api.delete(`/admin/companies/${id}`);
+    await this.api.delete(`/admin/companies/${encodeURIComponent(id)}`);
   }
 
 
@@ -121,7 +129,7 @@ class ApiService {
   }
 
   async getCustomer(id: string): Promise<Customer> {
-    const response: AxiosResponse<Customer> = await this.api.get(`/user/customers/${id}`);
+    const response: AxiosResponse<Customer> = await this.api.get(`/user/customers/${encodeURIComponent(id)}`);
     return response.data;
   }
 
@@ -131,11 +139,11 @@ class ApiService {
   }
 
   async updateCustomer(id: string, customer: UpdateCustomerRequest): Promise<void> {
-    await this.api.put(`/user/customers/${id}`, customer);
+    await this.api.put(`/user/customers/${encodeURIComponent(id)}`, customer);
   }
 
   async deleteCustomer(id: string): Promise<void> {
-    await this.api.delete(`/user/customers/${id}`);
+    await this.api.delete(`/user/customers/${encodeURIComponent(id)}`);
   }
 }
 

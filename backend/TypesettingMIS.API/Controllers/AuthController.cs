@@ -157,10 +157,10 @@ public class AuthController(IAuthService authService) : ControllerBase
             Email = userEmail ?? "",
             FirstName = userName?.Split(' ').FirstOrDefault() ?? "",
             LastName = userName?.Split(' ').Skip(1).FirstOrDefault() ?? "",
-            CompanyId = Guid.Parse(companyId ?? Guid.Empty.ToString()),
-            RoleId = Guid.Parse(roleId ?? Guid.Empty.ToString()),
+            CompanyId = Guid.TryParse(companyId, out var cid) ? cid : Guid.Empty,
+            RoleId = Guid.TryParse(roleId, out var rid) ? rid : Guid.Empty,
             RoleName = roleName ?? "",
-            IsActive = bool.Parse(isActive ?? "false")
+            IsActive = bool.TryParse(isActive, out var active) && active
         };
 
         return Ok(user);

@@ -61,17 +61,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     try {
       await dispatch(logout()).unwrap();
       handleProfileMenuClose();
+      navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
       // Even if logout fails, clear local storage and redirect
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       handleProfileMenuClose();
+      navigate('/login');
     }
   };
 
   // Check if user is admin
-  const isAdmin = user?.roleName?.toLowerCase() === 'admin';
+  const isAdmin = (user?.roleName || '').toLowerCase() === 'admin';
 
   const menuItems = isAdmin ? [
     { text: 'Dashboard', icon: <Dashboard />, path: '/' },
@@ -136,7 +138,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="body2" sx={{ mr: 2 }}>
-              {user?.companyName} • {user?.roleName}
+              {(user?.companyName ?? 'Company')} • {(user?.roleName ?? '')}
             </Typography>
             <IconButton
               size="large"

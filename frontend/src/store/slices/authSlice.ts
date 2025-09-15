@@ -62,6 +62,12 @@ export const getCurrentUser = createAsyncThunk(
       const user = await apiService.getCurrentUser();
       return user;
     } catch (error: any) {
+      // Clear only on 401/403
+      const status = error?.response?.status;
+      if (status === 401 || status === 403) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+      }
       return rejectWithValue(error.response?.data?.message || 'Failed to get user');
     }
   }
@@ -159,7 +165,6 @@ const authSlice = createSlice({
       // Get current user
       .addCase(getCurrentUser.pending, (state) => {
         state.isLoading = true;
-        state.isAuthenticated = false; // Reset authentication state while checking
       })
       .addCase(getCurrentUser.fulfilled, (state, action: PayloadAction<User>) => {
         state.isLoading = false;
