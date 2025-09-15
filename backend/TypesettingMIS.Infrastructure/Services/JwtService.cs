@@ -27,6 +27,7 @@ public class JwtService : IJwtService
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email ?? ""),
             new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
+            new Claim(ClaimTypes.Role, user.Role?.Name ?? ""), // Add role to standard Role claim
             new Claim("company_id", user.CompanyId.ToString()),
             new Claim("role_id", user.RoleId.ToString()),
             new Claim("role_name", user.Role?.Name ?? ""),

@@ -57,9 +57,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-    handleProfileMenuClose();
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout()).unwrap();
+      handleProfileMenuClose();
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Even if logout fails, clear local storage and redirect
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      handleProfileMenuClose();
+    }
   };
 
   // Check if user is admin

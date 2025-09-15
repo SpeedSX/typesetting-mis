@@ -8,17 +8,11 @@ import {
   Box,
   Alert,
   Link,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from '@mui/material';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { register, clearError } from '../store/slices/authSlice';
-import { fetchCompanies } from '../store/slices/companySlice';
 import type { RegisterRequest } from '../types/auth';
-import type { Company } from '../types/company';
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState<RegisterRequest>({
@@ -34,7 +28,8 @@ const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
-  const { companies, isLoading: companiesLoading } = useAppSelector((state) => state.company);
+  const [searchParams] = useSearchParams();
+  const companyIdFromUrl = searchParams.get('companyId');
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -43,11 +38,17 @@ const RegisterPage: React.FC = () => {
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {
-    dispatch(fetchCompanies());
+    // Set company ID from URL parameter or use default for testing
+    const companyId = companyIdFromUrl || "11111111-1111-1111-1111-111111111111";
+    setFormData(prev => ({
+      ...prev,
+      companyId: companyId
+    }));
+
     return () => {
       dispatch(clearError());
     };
-  }, [dispatch]);
+  }, [dispatch, companyIdFromUrl]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -64,12 +65,6 @@ const RegisterPage: React.FC = () => {
     }
   };
 
-  const handleCompanyChange = (e: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      companyId: e.target.value,
-    }));
-  };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<RegisterRequest> = {};
@@ -101,7 +96,7 @@ const RegisterPage: React.FC = () => {
     }
 
     if (!formData.companyId) {
-      newErrors.companyId = 'Company is required';
+      newErrors.companyId = 'Company is being loaded, please wait...';
     }
 
     setErrors(newErrors);
@@ -184,34 +179,17 @@ const RegisterPage: React.FC = () => {
               error={!!errors.email}
               helperText={errors.email}
             />
-            <FormControl
+            <TextField
               margin="normal"
               required
               fullWidth
-              error={!!errors.companyId}
-            >
-              <InputLabel id="company-label">Company</InputLabel>
-              <Select
-                labelId="company-label"
-                id="companyId"
-                name="companyId"
-                value={formData.companyId}
-                onChange={handleCompanyChange}
-                label="Company"
-                disabled={companiesLoading}
-              >
-                {companies.map((company: Company) => (
-                  <MenuItem key={company.id} value={company.id}>
-                    {company.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.companyId && (
-                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
-                  {errors.companyId}
-                </Typography>
-              )}
-            </FormControl>
+              id="companyId"
+              label="Company"
+              name="companyId"
+              value={formData.companyId ? (companyIdFromUrl ? "Company (from invitation)" : "Test Company (Default)") : "Loading..."}
+              disabled
+              helperText={companyIdFromUrl ? "You're registering for a specific company via invitation link" : "Default company for initial registration"}
+            />
             <TextField
               margin="normal"
               required
@@ -245,7 +223,7 @@ const RegisterPage: React.FC = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled={isLoading || companiesLoading}
+              disabled={isLoading}
             >
               {isLoading ? 'Creating Account...' : 'Sign Up'}
             </Button>

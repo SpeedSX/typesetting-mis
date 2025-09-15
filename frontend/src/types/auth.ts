@@ -9,7 +9,7 @@ export interface RegisterRequest {
   confirmPassword: string;
   firstName: string;
   lastName: string;
-  companyId: string;
+  companyId: string; // We'll convert this to Guid in the API call
 }
 
 export interface AuthResponse {

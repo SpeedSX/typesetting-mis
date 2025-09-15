@@ -72,21 +72,22 @@ app.UseMiddleware<TenantResolutionMiddleware>();
 
 app.MapControllers();
 
-// Seed initial data on startup
-using (var scope = app.Services.CreateScope())
+// Seed initial data on startup (dev or explicit opt-in)
+if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Seed:Enabled"))
 {
+    using var scope = app.Services.CreateScope();
+    var logger = app.Logger;
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
     var seeder = new DataSeeder(context, passwordHasher);
-    
     try
     {
         await seeder.SeedAsync();
-        Console.WriteLine("✅ Initial data seeded successfully");
+        logger.LogInformation("Initial data seeded successfully");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ Error seeding data: {ex.Message}");
+        logger.LogError(ex, "Error seeding data");
     }
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Container,
   Typography,
@@ -9,18 +9,34 @@ import {
   Grid,
   Chip,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
 } from '@mui/material';
-import { Add, Edit, Delete } from '@mui/icons-material';
+import { Add, Edit, Delete, Share } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchCompanies } from '../store/slices/companySlice';
+import InvitationGenerator from '../components/InvitationGenerator';
 
 const CompaniesPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { companies, isLoading } = useAppSelector((state) => state.company);
+  const [invitationDialog, setInvitationDialog] = useState<{ open: boolean; company: any }>({
+    open: false,
+    company: null
+  });
 
   useEffect(() => {
     dispatch(fetchCompanies());
   }, [dispatch]);
+
+  const handleOpenInvitation = (company: any) => {
+    setInvitationDialog({ open: true, company });
+  };
+
+  const handleCloseInvitation = () => {
+    setInvitationDialog({ open: false, company: null });
+  };
 
   return (
     <Container maxWidth="lg">
@@ -46,6 +62,14 @@ const CompaniesPage: React.FC = () => {
                       {company.name}
                     </Typography>
                     <Box>
+                      <IconButton 
+                        size="small" 
+                        color="info" 
+                        onClick={() => handleOpenInvitation(company)}
+                        title="Generate Invitation Link"
+                      >
+                        <Share />
+                      </IconButton>
                       <IconButton size="small" color="primary">
                         <Edit />
                       </IconButton>
@@ -93,6 +117,26 @@ const CompaniesPage: React.FC = () => {
           </Typography>
         </Box>
       )}
+
+      {/* Invitation Dialog */}
+      <Dialog 
+        open={invitationDialog.open} 
+        onClose={handleCloseInvitation}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Generate Invitation Link
+        </DialogTitle>
+        <DialogContent>
+          {invitationDialog.company && (
+            <InvitationGenerator 
+              companyId={invitationDialog.company.id}
+              companyName={invitationDialog.company.name}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 };

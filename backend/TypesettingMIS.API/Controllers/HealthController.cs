@@ -1,31 +1,34 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TypesettingMIS.Infrastructure.Data;
 
 namespace TypesettingMIS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class HealthController : ControllerBase
+public class HealthController(ApplicationDbContext context) : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
-
-    public HealthController(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
     /// <summary>
     /// Health check endpoint - checks database connectivity
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> Get()
     {
         try
         {
             // Check database connectivity
-            await _context.Database.CanConnectAsync();
-            
+            var canConnect = await context.Database.CanConnectAsync();
+            if (!canConnect)
+            {
+                return StatusCode(503, new
+                {
+                    Status = "Unhealthy",
+                    Timestamp = DateTime.UtcNow,
+                    Database = "Disconnected"
+                });
+            }
+
             return Ok(new
             {
                 Status = "Healthy",

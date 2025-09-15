@@ -4,29 +4,20 @@ using TypesettingMIS.Core.Entities;
 
 namespace TypesettingMIS.Infrastructure.Data;
 
-public class DataSeeder
+public class DataSeeder(ApplicationDbContext context, IPasswordHasher<User> passwordHasher)
 {
-    private readonly ApplicationDbContext _context;
-    private readonly IPasswordHasher<User> _passwordHasher;
-
-    public DataSeeder(ApplicationDbContext context, IPasswordHasher<User> passwordHasher)
-    {
-        _context = context;
-        _passwordHasher = passwordHasher;
-    }
-
     public async Task SeedAsync()
     {
         // Check if admin user already exists
-        if (await _context.Users.AnyAsync(u => u.Email == "admin@testcompany.com"))
+        if (await context.Users.AnyAsync(u => u.Email == "admin@testcompany.com"))
         {
             return; // Admin user already exists
         }
 
-        // Create test company
+        // Create test company with fixed GUID for testing
         var company = new Company
         {
-            Id = Guid.NewGuid(),
+            Id = new Guid("11111111-1111-1111-1111-111111111111"),
             Name = "Test Company",
             Domain = "testcompany.com",
             Settings = "{\"timezone\":\"UTC\",\"currency\":\"USD\"}",
@@ -36,8 +27,8 @@ public class DataSeeder
             UpdatedAt = DateTime.UtcNow
         };
 
-        _context.Companies.Add(company);
-        await _context.SaveChangesAsync();
+        context.Companies.Add(company);
+        await context.SaveChangesAsync();
 
         // Create Admin role
         var adminRole = new Role
@@ -52,7 +43,7 @@ public class DataSeeder
             ConcurrencyStamp = Guid.NewGuid().ToString()
         };
 
-        _context.Roles.Add(adminRole);
+        context.Roles.Add(adminRole);
 
         // Create User role
         var userRole = new Role
@@ -67,8 +58,8 @@ public class DataSeeder
             ConcurrencyStamp = Guid.NewGuid().ToString()
         };
 
-        _context.Roles.Add(userRole);
-        await _context.SaveChangesAsync();
+        context.Roles.Add(userRole);
+        await context.SaveChangesAsync();
 
         // Create admin user
         var adminUser = new User
@@ -88,9 +79,9 @@ public class DataSeeder
             ConcurrencyStamp = Guid.NewGuid().ToString()
         };
 
-        adminUser.PasswordHash = _passwordHasher.HashPassword(adminUser, "Admin123!");
-        _context.Users.Add(adminUser);
+        adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "Admin123!");
+        context.Users.Add(adminUser);
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 }

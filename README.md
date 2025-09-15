@@ -218,8 +218,9 @@ journalctl --user -u podman
    dotnet run
    ```
 
-   **Default Admin Credentials:**
-   - **Email**: `admin@testcompany.com`
+⚠️ **Default Admin Credentials (LOCAL DEVELOPMENT ONLY):**
+Do not enable startup seeding or these credentials in staging/production. Gate seeding by environment or an explicit flag.
+  - **Email**: `admin@testcompany.com`
    - **Password**: `Admin123!`
    - **Role**: Admin
 

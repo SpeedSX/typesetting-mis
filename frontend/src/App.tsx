@@ -33,10 +33,10 @@ function AppContent() {
   useEffect(() => {
     // Check if user is logged in on app start
     const token = localStorage.getItem('authToken');
-    if (token && !isAuthenticated) {
+    if (token && !isAuthenticated && !isLoading) {
       dispatch(getCurrentUser());
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, isLoading]);
 
   if (isLoading) {
     return <div>Loading...</div>;

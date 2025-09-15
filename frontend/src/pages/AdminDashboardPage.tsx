@@ -7,7 +7,6 @@ import {
   Box,
   Paper,
   Button,
-  Grid,
 } from '@mui/material';
 import {
   Business,
@@ -20,17 +19,14 @@ import {
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchCompanies } from '../store/slices/companySlice';
-import { fetchCustomers } from '../store/slices/customerSlice';
 
 const AdminDashboardPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { companies } = useAppSelector((state) => state.company);
-  const { customers } = useAppSelector((state) => state.customer);
 
   useEffect(() => {
     dispatch(fetchCompanies());
-    dispatch(fetchCustomers());
   }, [dispatch]);
 
   const adminStats = [
@@ -43,7 +39,7 @@ const AdminDashboardPage: React.FC = () => {
     },
     {
       title: 'Total Users',
-      value: customers.length, // This would be users in a real app
+      value: 'N/A', // Would need a proper users endpoint for admin
       icon: <People />,
       color: '#dc004e',
       action: 'Manage Users',
@@ -87,42 +83,40 @@ const AdminDashboardPage: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           System Overview
         </Typography>
-        <Grid container spacing={3}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 3 }}>
           {adminStats.map((stat) => (
-            <Grid item xs={12} sm={6} md={3} key={stat.title}>
-              <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Box
-                      sx={{
-                        p: 1,
-                        borderRadius: 1,
-                        backgroundColor: `${stat.color}20`,
-                        color: stat.color,
-                        mr: 2,
-                      }}
-                    >
-                      {stat.icon}
-                    </Box>
-                    <Typography variant="h6" component="div">
-                      {stat.title}
-                    </Typography>
-                  </Box>
-                  <Typography variant="h4" component="div" color="primary">
-                    {stat.value}
-                  </Typography>
-                  <Button
-                    size="small"
-                    sx={{ mt: 1, textTransform: 'none' }}
-                    color="primary"
+            <Card key={stat.title}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Box
+                    sx={{
+                      p: 1,
+                      borderRadius: 1,
+                      backgroundColor: `${stat.color}20`,
+                      color: stat.color,
+                      mr: 2,
+                    }}
                   >
-                    {stat.action}
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
+                    {stat.icon}
+                  </Box>
+                  <Typography variant="h6" component="div">
+                    {stat.title}
+                  </Typography>
+                </Box>
+                <Typography variant="h4" component="div" color="primary">
+                  {stat.value}
+                </Typography>
+                <Button
+                  size="small"
+                  sx={{ mt: 1, textTransform: 'none' }}
+                  color="primary"
+                >
+                  {stat.action}
+                </Button>
+              </CardContent>
+            </Card>
           ))}
-        </Grid>
+        </Box>
       </Box>
 
       {/* Quick Actions */}
@@ -130,32 +124,30 @@ const AdminDashboardPage: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Quick Actions
         </Typography>
-        <Grid container spacing={2}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
           {quickActions.map((action) => (
-            <Grid item xs={12} sm={6} md={3} key={action.title}>
-              <Card sx={{ cursor: 'pointer', '&:hover': { boxShadow: 3 } }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Box
-                      sx={{
-                        p: 1,
-                        borderRadius: 1,
-                        backgroundColor: `${action.color}20`,
-                        color: action.color,
-                        mr: 2,
-                      }}
-                    >
-                      {action.icon}
-                    </Box>
-                    <Typography variant="subtitle1">
-                      {action.title}
-                    </Typography>
+            <Card key={action.title} sx={{ cursor: 'pointer', '&:hover': { boxShadow: 3 } }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Box
+                    sx={{
+                      p: 1,
+                      borderRadius: 1,
+                      backgroundColor: `${action.color}20`,
+                      color: action.color,
+                      mr: 2,
+                    }}
+                  >
+                    {action.icon}
                   </Box>
-                </CardContent>
-              </Card>
-            </Grid>
+                  <Typography variant="subtitle1">
+                    {action.title}
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
           ))}
-        </Grid>
+        </Box>
       </Box>
 
       {/* Recent Companies */}

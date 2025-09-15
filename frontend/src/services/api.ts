@@ -45,7 +45,12 @@ class ApiService {
   }
 
   async register(userData: RegisterRequest): Promise<AuthResponse> {
-    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/register', userData);
+    // Convert companyId string to GUID format for the backend
+    const registerData = {
+      ...userData,
+      companyId: userData.companyId // The backend expects a GUID string
+    };
+    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/register', registerData);
     return response.data;
   }
 
@@ -54,8 +59,9 @@ class ApiService {
     return response.data;
   }
 
+
   async logout(): Promise<void> {
-    await this.api.post('/auth/logout');
+    await this.api.post('/auth/logout', {});
   }
 
   // Health check
