@@ -25,13 +25,12 @@ export const login = createAsyncThunk(
     try {
       const response = await apiService.login(credentials);
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('refreshToken', response.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.user));
+      // refreshToken is now stored in httpOnly cookie, not localStorage
       return response;
     } catch (error: any) {
       // Clear any existing tokens on error
       localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Login failed');
     }
@@ -44,13 +43,12 @@ export const register = createAsyncThunk(
     try {
       const response = await apiService.register(userData);
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('refreshToken', response.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.user));
+      // refreshToken is now stored in httpOnly cookie, not localStorage
       return response;
     } catch (error: any) {
       // Clear any existing tokens on error
       localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Registration failed');
     }
@@ -75,12 +73,11 @@ export const logout = createAsyncThunk(
     try {
       await apiService.logout();
       localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
+      // refreshToken cookie will be cleared by the backend
     } catch (error: any) {
       // Even if logout fails on server, clear local storage
       localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Logout failed');
     }
@@ -93,13 +90,12 @@ export const refreshToken = createAsyncThunk(
     try {
       const response = await apiService.refreshToken();
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('refreshToken', response.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.user));
+      // refreshToken is stored in httpOnly cookie, not localStorage
       return response;
     } catch (error: any) {
       // Clear tokens on refresh failure
       localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Token refresh failed');
     }

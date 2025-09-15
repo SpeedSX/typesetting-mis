@@ -40,8 +40,16 @@ public class AuthService : IAuthService
         var token = _jwtService.GenerateToken(user);
         var refreshToken = _jwtService.GenerateRefreshToken();
 
-        // Store refresh token (in a real app, you'd store this in a separate table)
-        // For now, we'll just return it
+        // Store refresh token in database
+        var refreshTokenEntity = new RefreshToken
+        {
+            Token = refreshToken,
+            UserId = user.Id,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            IsRevoked = false
+        };
+        _context.RefreshTokens.Add(refreshTokenEntity);
+        await _context.SaveChangesAsync();
 
         return new AuthResponseDto
         {
@@ -121,6 +129,17 @@ public class AuthService : IAuthService
         var token = _jwtService.GenerateToken(user);
         var refreshToken = _jwtService.GenerateRefreshToken();
 
+        // Store refresh token in database
+        var refreshTokenEntity = new RefreshToken
+        {
+            Token = refreshToken,
+            UserId = user.Id,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            IsRevoked = false
+        };
+        _context.RefreshTokens.Add(refreshTokenEntity);
+        await _context.SaveChangesAsync();
+
         return new AuthResponseDto
         {
             Token = token,
@@ -144,17 +163,82 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto?> RefreshTokenAsync(string refreshToken)
     {
-        // In a real app, you'd validate the refresh token against a stored value
-        // For now, we'll just generate a new token (this is not secure!)
-        // TODO: Implement proper refresh token validation
-        
-        return null; // Not implemented yet
+        // Find the refresh token in database
+        var storedToken = await _context.RefreshTokens
+            .Include(rt => rt.User)
+            .ThenInclude(u => u.Company)
+            .Include(rt => rt.User)
+            .ThenInclude(u => u.Role)
+            .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+
+        if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow)
+        {
+            return null; // Invalid or expired token
+        }
+
+        // Get the user
+        var user = storedToken.User;
+        if (user == null || !user.IsActive)
+        {
+            return null; // User not found or inactive
+        }
+
+        // Generate new tokens
+        var newToken = _jwtService.GenerateToken(user);
+        var newRefreshToken = _jwtService.GenerateRefreshToken();
+
+        // Revoke the old refresh token
+        storedToken.IsRevoked = true;
+        storedToken.RevokedAt = DateTime.UtcNow;
+        storedToken.ReplacedByToken = newRefreshToken;
+
+        // Store new refresh token
+        var newRefreshTokenEntity = new RefreshToken
+        {
+            Token = newRefreshToken,
+            UserId = user.Id,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            IsRevoked = false
+        };
+        _context.RefreshTokens.Add(newRefreshTokenEntity);
+
+        await _context.SaveChangesAsync();
+
+        return new AuthResponseDto
+        {
+            Token = newToken,
+            RefreshToken = newRefreshToken,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(60),
+            User = new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                CompanyId = user.CompanyId,
+                CompanyName = user.Company?.Name ?? "",
+                RoleId = user.RoleId,
+                RoleName = user.Role?.Name ?? "",
+                IsActive = user.IsActive,
+                CreatedAt = DateTime.UtcNow
+            }
+        };
     }
 
     public async Task<bool> LogoutAsync(string refreshToken)
     {
-        // In a real app, you'd invalidate the refresh token
-        // For now, we'll just return true
-        return await Task.FromResult(true);
+        // Find and revoke the refresh token
+        var storedToken = await _context.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+
+        if (storedToken != null)
+        {
+            storedToken.IsRevoked = true;
+            storedToken.RevokedAt = DateTime.UtcNow;
+            storedToken.ReasonRevoked = "User logout";
+            await _context.SaveChangesAsync();
+        }
+
+        return true;
     }
 }

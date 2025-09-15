@@ -13,6 +13,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     // Shared entities (not tenant-specific)
     public DbSet<Company> Companies { get; set; }
     public DbSet<EquipmentCategory> EquipmentCategories { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     // Tenant-specific entities
     public DbSet<User> Users { get; set; }
@@ -305,6 +306,22 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.HasOne(e => e.Company)
                 .WithMany()
                 .HasForeignKey(e => e.CompanyId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure RefreshToken
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.Property(e => e.Token).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.RevokedByIp).HasMaxLength(50);
+            entity.Property(e => e.ReplacedByToken).HasMaxLength(500);
+            entity.Property(e => e.ReasonRevoked).HasMaxLength(100);
+            
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

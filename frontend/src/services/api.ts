@@ -12,6 +12,7 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
       },
+      withCredentials: true, // Enable cookies for httpOnly refresh tokens
     });
 
     // Add request interceptor to include auth token
@@ -30,7 +31,6 @@ class ApiService {
         if (error.response?.status === 401) {
           // Token expired or invalid, redirect to login
           localStorage.removeItem('authToken');
-          localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
           window.location.href = '/login';
         }
@@ -62,16 +62,13 @@ class ApiService {
 
 
   async logout(): Promise<void> {
-    const refreshToken = localStorage.getItem('refreshToken');
-    await this.api.post('/auth/logout', { refreshToken });
+    // Refresh token will be read from httpOnly cookie on the backend
+    await this.api.post('/auth/logout');
   }
 
   async refreshToken(): Promise<AuthResponse> {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/refresh', { refreshToken });
+    // Refresh token will be read from httpOnly cookie on the backend
+    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/refresh');
     return response.data;
   }
 

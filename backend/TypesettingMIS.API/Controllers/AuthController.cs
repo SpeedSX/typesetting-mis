@@ -10,9 +10,10 @@ namespace TypesettingMIS.API.Controllers;
 public class AuthController(IAuthService authService) : ControllerBase
 {
     /// <summary>
-    /// User login - returns JWT token and user information
+    /// User login - returns JWT token and user information, sets httpOnly refresh token cookie
     /// </summary>
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
     {
         var result = await authService.LoginAsync(loginDto);
@@ -22,13 +23,27 @@ public class AuthController(IAuthService authService) : ControllerBase
             return Unauthorized(new { message = "Invalid email or password" });
         }
 
+        // Set httpOnly refresh token cookie
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, // Use HTTPS in production
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(7) // Adjust as needed
+        };
+        Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
+
+        // Remove refresh token from response body for security
+        result.RefreshToken = null;
+
         return Ok(result);
     }
 
     /// <summary>
-    /// User registration - creates new user account
+    /// User registration - creates new user account, sets httpOnly refresh token cookie
     /// </summary>
     [HttpPost("register")]
+    [AllowAnonymous]
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
     {
         var result = await authService.RegisterAsync(registerDto);
@@ -38,34 +53,79 @@ public class AuthController(IAuthService authService) : ControllerBase
             return BadRequest(new { message = "Registration failed. User may already exist or company not found." });
         }
 
+        // Set httpOnly refresh token cookie
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, // Use HTTPS in production
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(7) // Adjust as needed
+        };
+        Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
+
+        // Remove refresh token from response body for security
+        result.RefreshToken = null;
+
         return Ok(result);
     }
 
     /// <summary>
-    /// Refresh JWT token using refresh token
+    /// Refresh JWT token using refresh token from httpOnly cookie
     /// </summary>
     [HttpPost("refresh")]
-    public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] RefreshTokenRequest refreshToken)
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponseDto>> RefreshToken()
     {
-        var result = await authService.RefreshTokenAsync(refreshToken.RefreshToken);
+        // Read refresh token from httpOnly cookie
+        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken) || 
+            string.IsNullOrEmpty(refreshToken))
+        {
+            return Unauthorized(new { message = "No refresh token found in cookie" });
+        }
+
+        var result = await authService.RefreshTokenAsync(refreshToken);
         
         if (result == null)
         {
             return Unauthorized(new { message = "Invalid refresh token" });
         }
 
+        // Set new httpOnly refresh token cookie
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, // Use HTTPS in production
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(7) // Adjust as needed
+        };
+        Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
+
+        // Remove refresh token from response body for security
+        result.RefreshToken = null;
+
         return Ok(result);
     }
 
     /// <summary>
-    /// User logout - invalidates refresh token
+    /// User logout - invalidates refresh token and clears cookie
     /// </summary>
     [HttpPost("logout")]
     [Authorize]
-    [Consumes("application/json")]
-    public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest req)
+    public async Task<IActionResult> Logout()
     {
-        await authService.LogoutAsync(req.RefreshToken);
+        // Read refresh token from httpOnly cookie
+        if (Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+        {
+            await authService.LogoutAsync(refreshToken);
+        }
+
+        // Clear the refresh token cookie
+        Response.Cookies.Delete("refreshToken", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, // Use HTTPS in production
+            SameSite = SameSiteMode.Strict
+        });
         
         return Ok(new { message = "Logged out successfully" });
     }
@@ -106,5 +166,3 @@ public class AuthController(IAuthService authService) : ControllerBase
         return Ok(user);
     }
 }
-
-public record RefreshTokenRequest(string RefreshToken);
