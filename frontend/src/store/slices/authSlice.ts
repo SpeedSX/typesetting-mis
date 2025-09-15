@@ -25,9 +25,14 @@ export const login = createAsyncThunk(
     try {
       const response = await apiService.login(credentials);
       localStorage.setItem('authToken', response.token);
+      localStorage.setItem('refreshToken', response.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.user));
       return response;
     } catch (error: any) {
+      // Clear any existing tokens on error
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Login failed');
     }
   }
@@ -39,9 +44,14 @@ export const register = createAsyncThunk(
     try {
       const response = await apiService.register(userData);
       localStorage.setItem('authToken', response.token);
+      localStorage.setItem('refreshToken', response.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.user));
       return response;
     } catch (error: any) {
+      // Clear any existing tokens on error
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Registration failed');
     }
   }
@@ -65,10 +75,12 @@ export const logout = createAsyncThunk(
     try {
       await apiService.logout();
       localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
     } catch (error: any) {
       // Even if logout fails on server, clear local storage
       localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Logout failed');
     }
@@ -107,6 +119,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
+        // refreshToken cleanup is handled in the thunk
       })
       // Register
       .addCase(register.pending, (state) => {
@@ -126,6 +139,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
+        // refreshToken cleanup is handled in the thunk
       })
       // Get current user
       .addCase(getCurrentUser.pending, (state) => {
@@ -144,6 +158,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
+        // refreshToken cleanup is handled in the thunk
       })
       // Logout
       .addCase(logout.fulfilled, (state) => {

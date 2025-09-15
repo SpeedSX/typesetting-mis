@@ -30,6 +30,7 @@ class ApiService {
         if (error.response?.status === 401) {
           // Token expired or invalid, redirect to login
           localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
           window.location.href = '/login';
         }
@@ -61,7 +62,8 @@ class ApiService {
 
 
   async logout(): Promise<void> {
-    await this.api.post('/auth/logout', {});
+    const refreshToken = localStorage.getItem('refreshToken');
+    await this.api.post('/auth/logout', refreshToken);
   }
 
   // Admin User endpoints
