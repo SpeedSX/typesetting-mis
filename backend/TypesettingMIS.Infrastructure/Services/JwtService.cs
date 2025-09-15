@@ -47,7 +47,9 @@ public class JwtService : IJwtService
 
     public string GenerateRefreshToken()
     {
-        return Guid.NewGuid().ToString();
+        var bytes = new byte[32];
+        System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
+        return Convert.ToBase64String(bytes);
     }
 
     public bool ValidateToken(string token)

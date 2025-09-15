@@ -4,24 +4,35 @@ import {
   Typography,
   Box,
   Button,
-  Card,
-  CardContent,
-  Grid,
   Chip,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from '@mui/material';
 import { Add, Edit, Delete, Share } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchCompanies } from '../store/slices/companySlice';
 import InvitationGenerator from '../components/InvitationGenerator';
+import AddCompanyForm from '../components/AddCompanyForm';
+import EditCompanyForm from '../components/EditCompanyForm';
 
 const CompaniesPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { companies, isLoading } = useAppSelector((state) => state.company);
   const [invitationDialog, setInvitationDialog] = useState<{ open: boolean; company: any }>({
+    open: false,
+    company: null
+  });
+  const [addCompanyDialog, setAddCompanyDialog] = useState(false);
+  const [editCompanyDialog, setEditCompanyDialog] = useState<{ open: boolean; company: any }>({
     open: false,
     company: null
   });
@@ -38,30 +49,93 @@ const CompaniesPage: React.FC = () => {
     setInvitationDialog({ open: false, company: null });
   };
 
+  const handleOpenAddCompany = () => {
+    setAddCompanyDialog(true);
+  };
+
+  const handleCloseAddCompany = () => {
+    setAddCompanyDialog(false);
+  };
+
+  const handleOpenEditCompany = (company: any) => {
+    setEditCompanyDialog({ open: true, company });
+  };
+
+  const handleCloseEditCompany = () => {
+    setEditCompanyDialog({ open: false, company: null });
+  };
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h4" component="h1">
           Companies
         </Typography>
-        <Button variant="contained" startIcon={<Add />}>
+        <Button variant="contained" startIcon={<Add />} onClick={handleOpenAddCompany}>
           Add Company
         </Button>
       </Box>
 
-      {isLoading ? (
-        <Typography>Loading...</Typography>
-      ) : (
-        <Grid container spacing={3}>
-          {companies.map((company) => (
-            <Grid item xs={12} sm={6} md={4} key={company.id}>
-              <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                    <Typography variant="h6" component="div">
-                      {company.name}
+      {/* Companies Table */}
+      <Paper>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Company Name</TableCell>
+                <TableCell>Domain</TableCell>
+                <TableCell>Subscription Plan</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Created</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    <Typography>Loading...</Typography>
+                  </TableCell>
+                </TableRow>
+              ) : companies.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                      No companies found
                     </Typography>
-                    <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Get started by adding your first company.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                companies.map((company) => (
+                  <TableRow key={company.id}>
+                    <TableCell>
+                      <Typography variant="subtitle2" fontWeight="medium">
+                        {company.name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>{company.domain}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={company.subscriptionPlan} 
+                        size="small" 
+                        color="primary" 
+                        variant="outlined" 
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={company.isActive ? 'Active' : 'Inactive'}
+                        color={company.isActive ? 'success' : 'default'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {new Date(company.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
                       <IconButton 
                         size="small" 
                         color="info" 
@@ -70,53 +144,29 @@ const CompaniesPage: React.FC = () => {
                       >
                         <Share />
                       </IconButton>
-                      <IconButton size="small" color="primary">
+                      <IconButton 
+                        size="small" 
+                        color="primary"
+                        onClick={() => handleOpenEditCompany(company)}
+                        title="Edit Company"
+                      >
                         <Edit />
                       </IconButton>
-                      <IconButton size="small" color="error">
+                      <IconButton 
+                        size="small" 
+                        color="error"
+                        title="Delete Company"
+                      >
                         <Delete />
                       </IconButton>
-                    </Box>
-                  </Box>
-                  
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    {company.domain}
-                  </Typography>
-                  
-                  <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                    <Chip 
-                      label={company.subscriptionPlan} 
-                      size="small" 
-                      color="primary" 
-                      variant="outlined" 
-                    />
-                    <Chip 
-                      label={company.isActive ? 'Active' : 'Inactive'} 
-                      size="small" 
-                      color={company.isActive ? 'success' : 'default'} 
-                    />
-                  </Box>
-                  
-                  <Typography variant="body2" color="text.secondary">
-                    Created: {new Date(company.createdAt).toLocaleDateString()}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      )}
-
-      {companies.length === 0 && !isLoading && (
-        <Box sx={{ textAlign: 'center', py: 4 }}>
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            No companies found
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Get started by adding your first company.
-          </Typography>
-        </Box>
-      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
       {/* Invitation Dialog */}
       <Dialog 
@@ -137,6 +187,19 @@ const CompaniesPage: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Add Company Dialog */}
+      <AddCompanyForm 
+        open={addCompanyDialog} 
+        onClose={handleCloseAddCompany} 
+      />
+
+      {/* Edit Company Dialog */}
+      <EditCompanyForm 
+        open={editCompanyDialog.open} 
+        onClose={handleCloseEditCompany}
+        company={editCompanyDialog.company}
+      />
     </Container>
   );
 };
