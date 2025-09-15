@@ -29,25 +29,23 @@ const theme = createTheme({
 
 function AppContent() {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isCheckingAuth } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     // Check if user is logged in on app start
     const token = localStorage.getItem('authToken');
-    if (token && !isAuthenticated && !isLoading) {
+    if (token && !isAuthenticated) {
       dispatch(getCurrentUser());
     }
-  }, [dispatch, isAuthenticated, isLoading]);
+  }, [dispatch, isAuthenticated]);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  // The ProtectedRoute component will handle the loading state for auth checking
 
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path="/register" element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/" />} />
+        <Route path="/login" element={!isAuthenticated && !isCheckingAuth ? <LoginPage /> : <Navigate to="/" />} />
+        <Route path="/register" element={!isAuthenticated && !isCheckingAuth ? <RegisterPage /> : <Navigate to="/" />} />
         <Route
           path="/*"
           element={

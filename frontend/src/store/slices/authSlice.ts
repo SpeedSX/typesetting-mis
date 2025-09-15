@@ -7,6 +7,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isCheckingAuth: boolean;
   error: string | null;
 }
 
@@ -15,6 +16,7 @@ const initialState: AuthState = {
   token: localStorage.getItem('authToken'),
   isAuthenticated: false, // Don't assume authentication until verified
   isLoading: false,
+  isCheckingAuth: false, // Will be set to true when getCurrentUser is dispatched
   error: null,
 };
 
@@ -165,15 +167,18 @@ const authSlice = createSlice({
       // Get current user
       .addCase(getCurrentUser.pending, (state) => {
         state.isLoading = true;
+        state.isCheckingAuth = true;
       })
       .addCase(getCurrentUser.fulfilled, (state, action: PayloadAction<User>) => {
         state.isLoading = false;
+        state.isCheckingAuth = false;
         state.user = action.payload;
         state.isAuthenticated = true;
         state.error = null;
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.isLoading = false;
+        state.isCheckingAuth = false;
         state.error = action.payload as string;
         state.isAuthenticated = false;
         state.user = null;
@@ -186,6 +191,7 @@ const authSlice = createSlice({
         state.token = null;
         state.isAuthenticated = false;
         state.isLoading = false;
+        state.isCheckingAuth = false;
         state.error = null;
       })
       // Refresh token
