@@ -12,15 +12,18 @@ public class AuthService : IAuthService
     private readonly ApplicationDbContext _context;
     private readonly IJwtService _jwtService;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly IInvitationService _invitationService;
 
     public AuthService(
         ApplicationDbContext context,
         IJwtService jwtService,
-        IPasswordHasher<User> passwordHasher)
+        IPasswordHasher<User> passwordHasher,
+        IInvitationService invitationService)
     {
         _context = context;
         _jwtService = jwtService;
         _passwordHasher = passwordHasher;
+        _invitationService = invitationService;
     }
 
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto)
@@ -81,23 +84,28 @@ public class AuthService : IAuthService
         if (existingUser != null)
             return null;
 
-        // Check if company exists
+        // Validate invitation token
+        var invitation = await _invitationService.ValidateInvitationAsync(registerDto.InvitationToken);
+        if (invitation == null)
+            return null;
+
+        // Get company from invitation
         var company = await _context.Companies
-            .FirstOrDefaultAsync(c => c.Id == registerDto.CompanyId && !c.IsDeleted);
+            .FirstOrDefaultAsync(c => c.Name == invitation.CompanyName && !c.IsDeleted);
 
         if (company == null)
             return null;
 
         // Get default role (or create one)
         var defaultRole = await _context.Roles
-            .FirstOrDefaultAsync(r => r.CompanyId == registerDto.CompanyId && r.Name == "User");
+            .FirstOrDefaultAsync(r => r.CompanyId == company.Id && r.Name == "User");
 
         if (defaultRole == null)
         {
             defaultRole = new Role
             {
                 Name = "User",
-                CompanyId = registerDto.CompanyId,
+                CompanyId = company.Id,
                 Permissions = "[]" // Basic permissions
             };
             _context.Roles.Add(defaultRole);
@@ -110,7 +118,7 @@ public class AuthService : IAuthService
             Email = registerDto.Email,
             FirstName = registerDto.FirstName,
             LastName = registerDto.LastName,
-            CompanyId = registerDto.CompanyId,
+            CompanyId = company.Id,
             RoleId = defaultRole.Id,
             IsActive = true
         };
@@ -139,6 +147,9 @@ public class AuthService : IAuthService
         };
         _context.RefreshTokens.Add(refreshTokenEntity);
         await _context.SaveChangesAsync();
+
+        // Mark invitation as used
+        await _invitationService.MarkInvitationAsUsedAsync(registerDto.InvitationToken, user.Id, user.Email);
 
         return new AuthResponseDto
         {

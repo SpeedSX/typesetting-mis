@@ -7,7 +7,7 @@ namespace TypesettingMIS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(IAuthService authService, IInvitationService invitationService) : ControllerBase
 {
     /// <summary>
     /// User login - returns JWT token and user information, sets httpOnly refresh token cookie

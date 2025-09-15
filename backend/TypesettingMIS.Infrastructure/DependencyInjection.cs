@@ -35,6 +35,7 @@ public static class DependencyInjection
         // Add custom services
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<ITenantContext, TenantContext>();
         services.AddScoped<ITenantAwareService, TenantAwareService>();
 

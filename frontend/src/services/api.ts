@@ -3,6 +3,7 @@ import type { AuthResponse, LoginRequest, RegisterRequest, User } from '../types
 import type { Company, CreateCompanyRequest, UpdateCompanyRequest } from '../types/company';
 import type { Customer, CreateCustomerRequest, UpdateCustomerRequest } from '../types/customer';
 import type { UserStats } from '../types/user';
+import type { Invitation, CreateInvitationRequest, ValidateInvitationRequest } from '../types/invitation';
 
 class ApiService {
   private api: AxiosInstance;
@@ -144,6 +145,17 @@ class ApiService {
 
   async deleteCustomer(id: string): Promise<void> {
     await this.api.delete(`/user/customers/${encodeURIComponent(id)}`);
+  }
+
+  // Admin Invitation endpoints
+  async createInvitation(invitation: CreateInvitationRequest): Promise<Invitation> {
+    const response: AxiosResponse<Invitation> = await this.api.post('/admin/invitations', invitation);
+    return response.data;
+  }
+
+  async validateInvitation(request: ValidateInvitationRequest): Promise<Invitation> {
+    const response: AxiosResponse<Invitation> = await this.api.post('/admin/invitations/validate', request);
+    return response.data;
   }
 }
 

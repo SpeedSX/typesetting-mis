@@ -8,11 +8,14 @@ import {
   Box,
   Alert,
   Link,
+  CircularProgress,
 } from '@mui/material';
 import { useNavigate, Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { register, clearError } from '../store/slices/authSlice';
+import { apiService } from '../services/api';
 import type { RegisterRequest } from '../types/auth';
+import type { Invitation } from '../types/invitation';
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState<RegisterRequest>({
@@ -21,15 +24,19 @@ const RegisterPage: React.FC = () => {
     confirmPassword: '',
     firstName: '',
     lastName: '',
-    companyId: '',
+    invitationToken: '',
   });
   const [errors, setErrors] = useState<Partial<RegisterRequest>>({});
+  const [invitation, setInvitation] = useState<Invitation | null>(null);
+  const [isValidatingInvitation, setIsValidatingInvitation] = useState(false);
+  const [invitationError, setInvitationError] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
   const [searchParams] = useSearchParams();
-  const companyIdFromUrl = searchParams.get('companyId');
+  const invitationTokenFromUrl = searchParams.get('invite');
+  const companyIdFromUrl = searchParams.get('companyId'); // Fallback for old links
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -38,19 +45,40 @@ const RegisterPage: React.FC = () => {
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {
-// Set company ID from URL parameter; only fall back in development
-    const companyId =
-      companyIdFromUrl ||
-      (import.meta.env.DEV ? "11111111-1111-1111-1111-111111111111" : "");
-    setFormData(prev => ({
-      ...prev,
-      companyId: companyId
-    }));
+    const validateInvitation = async () => {
+      if (invitationTokenFromUrl) {
+        setIsValidatingInvitation(true);
+        setInvitationError(null);
+        
+        try {
+          const invitationData = await apiService.validateInvitation({
+            token: invitationTokenFromUrl
+          });
+          setInvitation(invitationData);
+          setFormData(prev => ({
+            ...prev,
+            invitationToken: invitationTokenFromUrl
+          }));
+        } catch (err: any) {
+          setInvitationError(err.response?.data?.message || 'Invalid or expired invitation');
+        } finally {
+          setIsValidatingInvitation(false);
+        }
+      } else if (companyIdFromUrl) {
+        // Fallback for old companyId-based links
+        setFormData(prev => ({
+          ...prev,
+          invitationToken: companyIdFromUrl // This will be handled as companyId in the backend
+        }));
+      }
 
-    return () => {
-      dispatch(clearError());
+      return () => {
+        dispatch(clearError());
+      };
     };
-  }, [dispatch, companyIdFromUrl]);
+
+    validateInvitation();
+  }, [dispatch, invitationTokenFromUrl, companyIdFromUrl]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -97,11 +125,8 @@ const RegisterPage: React.FC = () => {
       newErrors.lastName = 'Last name is required';
     }
 
-    const guidRe = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
-    if (!formData.companyId) {
-      newErrors.companyId = 'Company is being loaded, please wait...';
-    } else if (!guidRe.test(formData.companyId)) {
-      newErrors.companyId = 'Invalid company link';
+    if (!formData.invitationToken) {
+      newErrors.invitationToken = 'Valid invitation is required';
     }
         
     setErrors(newErrors);
@@ -135,6 +160,29 @@ const RegisterPage: React.FC = () => {
           <Typography component="h2" variant="h5" align="center" gutterBottom>
             Sign Up
           </Typography>
+
+          {isValidatingInvitation && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+              <CircularProgress size={20} sx={{ mr: 1 }} />
+              <Typography variant="body2">Validating invitation...</Typography>
+            </Box>
+          )}
+
+          {invitationError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {invitationError}
+            </Alert>
+          )}
+
+          {invitation && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              You're invited to join <strong>{invitation.companyName}</strong>!
+              <br />
+              <Typography variant="caption" color="text.secondary">
+                Invitation expires: {new Date(invitation.expiresAt).toLocaleString()}
+              </Typography>
+            </Alert>
+          )}
           
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -142,7 +190,15 @@ const RegisterPage: React.FC = () => {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+          <Box 
+            component="form" 
+            onSubmit={handleSubmit} 
+            sx={{ 
+              mt: 1,
+              opacity: isValidatingInvitation || invitationError ? 0.6 : 1,
+              pointerEvents: isValidatingInvitation || invitationError ? 'none' : 'auto'
+            }}
+          >
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 margin="normal"
@@ -228,7 +284,7 @@ const RegisterPage: React.FC = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled={isLoading}
+              disabled={isLoading || isValidatingInvitation || !!invitationError}
             >
               {isLoading ? 'Creating Account...' : 'Sign Up'}
             </Button>

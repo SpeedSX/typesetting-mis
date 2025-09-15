@@ -14,6 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<Company> Companies { get; set; }
     public DbSet<EquipmentCategory> EquipmentCategories { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<Invitation> Invitations { get; set; }
 
     // Tenant-specific entities
     public DbSet<User> Users { get; set; }
@@ -322,6 +323,20 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure Invitation
+        modelBuilder.Entity<Invitation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.Property(e => e.Token).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.UsedByEmail).HasMaxLength(256);
+            
+            entity.HasOne(e => e.Company)
+                .WithMany()
+                .HasForeignKey(e => e.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
