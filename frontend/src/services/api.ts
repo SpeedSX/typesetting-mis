@@ -64,6 +64,17 @@ class ApiService {
     await this.api.post('/auth/logout', {});
   }
 
+  // Admin User endpoints
+  async getUsers(): Promise<any[]> {
+    const response: AxiosResponse<any[]> = await this.api.get('/admin/users');
+    return response.data;
+  }
+
+  async getUserStats(): Promise<any> {
+    const response: AxiosResponse<any> = await this.api.get('/admin/users/stats');
+    return response.data;
+  }
+
   // Health check
   async healthCheck(): Promise<any> {
     const response: AxiosResponse<any> = await this.api.get('/health');

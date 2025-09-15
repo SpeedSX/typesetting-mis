@@ -19,14 +19,19 @@ import {
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchCompanies } from '../store/slices/companySlice';
+import { fetchUserStats } from '../store/slices/userSlice';
+import { useNavigate } from 'react-router-dom';
 
 const AdminDashboardPage: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
   const { companies } = useAppSelector((state) => state.company);
+  const { stats: userStats } = useAppSelector((state) => state.user);
 
   useEffect(() => {
     dispatch(fetchCompanies());
+    dispatch(fetchUserStats());
   }, [dispatch]);
 
   const adminStats = [
@@ -39,7 +44,7 @@ const AdminDashboardPage: React.FC = () => {
     },
     {
       title: 'Total Users',
-      value: 'N/A', // Would need a proper users endpoint for admin
+      value: userStats?.totalUsers || 'Loading...',
       icon: <People />,
       color: '#dc004e',
       action: 'Manage Users',
@@ -59,6 +64,30 @@ const AdminDashboardPage: React.FC = () => {
       action: 'View Reports',
     },
   ];
+
+  const handleActionClick = (action: string) => {
+    switch (action) {
+      case 'Manage Companies':
+        navigate('/companies');
+        break;
+      case 'Manage Users':
+        navigate('/users');
+        break;
+      case 'Add Company':
+        navigate('/companies');
+        break;
+      case 'System Settings':
+        // TODO: Implement settings page
+        console.log('Settings clicked');
+        break;
+      case 'View Reports':
+        // TODO: Implement reports page
+        console.log('Reports clicked');
+        break;
+      default:
+        break;
+    }
+  };
 
   const quickActions = [
     { title: 'Add Company', icon: <Add />, color: '#1976d2' },
@@ -110,6 +139,7 @@ const AdminDashboardPage: React.FC = () => {
                   size="small"
                   sx={{ mt: 1, textTransform: 'none' }}
                   color="primary"
+                  onClick={() => handleActionClick(stat.action)}
                 >
                   {stat.action}
                 </Button>
@@ -126,7 +156,11 @@ const AdminDashboardPage: React.FC = () => {
         </Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
           {quickActions.map((action) => (
-            <Card key={action.title} sx={{ cursor: 'pointer', '&:hover': { boxShadow: 3 } }}>
+            <Card 
+              key={action.title} 
+              sx={{ cursor: 'pointer', '&:hover': { boxShadow: 3 } }}
+              onClick={() => handleActionClick(action.title)}
+            >
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <Box

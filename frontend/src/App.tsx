@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CustomersPage from './pages/CustomersPage';
 import CompaniesPage from './pages/CompaniesPage';
+import UsersPage from './pages/UsersPage';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleBasedDashboard from './components/RoleBasedDashboard';
@@ -56,6 +57,7 @@ function AppContent() {
                   <Route path="/" element={<RoleBasedDashboard />} />
                   <Route path="/customers" element={<CustomersPage />} />
                   <Route path="/companies" element={<CompaniesPage />} />
+                  <Route path="/users" element={<UsersPage />} />
                 </Routes>
               </Layout>
             </ProtectedRoute>

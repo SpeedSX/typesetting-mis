@@ -15,17 +15,14 @@ import {
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchCustomers } from '../store/slices/customerSlice';
-import { fetchCompanies } from '../store/slices/companySlice';
 
 const DashboardPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { customers } = useAppSelector((state) => state.customer);
-  const { companies } = useAppSelector((state) => state.company);
 
   useEffect(() => {
     dispatch(fetchCustomers());
-    dispatch(fetchCompanies());
   }, [dispatch]);
 
   const stats = [
@@ -34,12 +31,6 @@ const DashboardPage: React.FC = () => {
       value: customers.length,
       icon: <People />,
       color: '#1976d2',
-    },
-    {
-      title: 'Companies',
-      value: companies.length,
-      icon: <Business />,
-      color: '#dc004e',
     },
     {
       title: 'Orders',
@@ -52,6 +43,12 @@ const DashboardPage: React.FC = () => {
       value: '$0.00',
       icon: <AttachMoney />,
       color: '#ed6c02',
+    },
+    {
+      title: 'Tasks',
+      value: 0,
+      icon: <Business />,
+      color: '#dc004e',
     },
   ];
 
