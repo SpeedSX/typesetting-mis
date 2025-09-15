@@ -63,7 +63,16 @@ class ApiService {
 
   async logout(): Promise<void> {
     const refreshToken = localStorage.getItem('refreshToken');
-    await this.api.post('/auth/logout', refreshToken);
+    await this.api.post('/auth/logout', { refreshToken });
+  }
+
+  async refreshToken(): Promise<AuthResponse> {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/refresh', { refreshToken });
+    return response.data;
   }
 
   // Admin User endpoints

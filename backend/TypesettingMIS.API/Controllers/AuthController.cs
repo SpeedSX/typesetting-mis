@@ -7,22 +7,15 @@ namespace TypesettingMIS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
-    {
-        _authService = authService;
-    }
-
     /// <summary>
     /// User login - returns JWT token and user information
     /// </summary>
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
     {
-        var result = await _authService.LoginAsync(loginDto);
+        var result = await authService.LoginAsync(loginDto);
         
         if (result == null)
         {
@@ -38,7 +31,7 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
     {
-        var result = await _authService.RegisterAsync(registerDto);
+        var result = await authService.RegisterAsync(registerDto);
         
         if (result == null)
         {
@@ -52,9 +45,9 @@ public class AuthController : ControllerBase
     /// Refresh JWT token using refresh token
     /// </summary>
     [HttpPost("refresh")]
-    public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] string refreshToken)
+    public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] RefreshTokenRequest refreshToken)
     {
-        var result = await _authService.RefreshTokenAsync(refreshToken);
+        var result = await authService.RefreshTokenAsync(refreshToken.RefreshToken);
         
         if (result == null)
         {
@@ -70,10 +63,10 @@ public class AuthController : ControllerBase
     [HttpPost("logout")]
     [Authorize]
     [Consumes("application/json")]
-    public async Task<IActionResult> Logout([FromBody] object? body = null)
+    public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest req)
     {
-        // For now, just return success since we're not implementing refresh token invalidation yet
-        // In a real app, you would invalidate the refresh token here
+        await authService.LogoutAsync(req.RefreshToken);
+        
         return Ok(new { message = "Logged out successfully" });
     }
 
@@ -113,3 +106,5 @@ public class AuthController : ControllerBase
         return Ok(user);
     }
 }
+
+public record RefreshTokenRequest(string RefreshToken);
