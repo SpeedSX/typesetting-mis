@@ -11,7 +11,6 @@ class ApiService {
   constructor() {
     const baseURL =
       import.meta.env.VITE_API_BASE_URL ||
-      (typeof process !== 'undefined' ? process.env.REACT_APP_API_BASE_URL : '') ||
       '/api';
     
     this.api = axios.create({
@@ -52,15 +51,7 @@ class ApiService {
   }
 
   async register(userData: RegisterRequest): Promise<AuthResponse> {
-    // Validate companyId as GUID before sending
-    const registerData = {
-      ...userData,
-      companyId: userData.companyId?.trim(),
-    };
-    if (registerData.companyId && !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(registerData.companyId)) {
-      throw new Error('Invalid companyId (expected GUID).');
-    }
-    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/register', registerData);
+    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/register', userData);
     return response.data;
   }
 

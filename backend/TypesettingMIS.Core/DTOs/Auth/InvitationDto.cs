@@ -2,9 +2,15 @@ namespace TypesettingMIS.Core.DTOs.Auth;
 
 public class InvitationDto
 {
+    public Guid Id { get; set; }
     public string Token { get; set; } = string.Empty;
+    public Guid CompanyId { get; set; }
     public string CompanyName { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
+    public bool IsUsed { get; set; }
+    public DateTime? UsedAt { get; set; }
+    public Guid? UsedByUserId { get; set; }
+    public string? UsedByEmail { get; set; }
 }
 
 public class CreateInvitationDto

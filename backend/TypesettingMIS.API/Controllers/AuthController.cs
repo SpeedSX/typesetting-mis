@@ -29,7 +29,7 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
             HttpOnly = true,
             Secure = !environment.IsDevelopment(),
             SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddDays(7) // Adjust as needed
+            Expires = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7))
         };
         Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
 
@@ -96,7 +96,7 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
             HttpOnly = true,
             Secure = !environment.IsDevelopment(),
             SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddDays(7) // Adjust as needed
+            Expires = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7))
         };
         Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
 

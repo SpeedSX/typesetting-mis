@@ -161,9 +161,9 @@ const RegisterPage: React.FC = () => {
             </Box>
           )}
 
-          {invitationError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {invitationError}
+          {!invitation && !isValidatingInvitation && !invitationError && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              A valid invitation link is required to sign up.
             </Alert>
           )}
 
@@ -266,7 +266,7 @@ const RegisterPage: React.FC = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled={isLoading || isValidatingInvitation || !!invitationError}
+              disabled={isLoading || isValidatingInvitation || !!invitationError || !invitation}
             >
               {isLoading ? 'Creating Account...' : 'Sign Up'}
             </Button>

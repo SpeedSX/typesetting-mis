@@ -44,9 +44,12 @@ public class InvitationService : IInvitationService
 
         return new InvitationDto
         {
+            Id = invitation.Id,
             Token = token,
+            CompanyId = invitation.CompanyId,
             CompanyName = company.Name,
-            ExpiresAt = invitation.ExpiresAt
+            ExpiresAt = invitation.ExpiresAt,
+            IsUsed = invitation.IsUsed
         };
     }
 
@@ -65,9 +68,15 @@ public class InvitationService : IInvitationService
 
         return new InvitationDto
         {
+            Id = invitation.Id,
             Token = invitation.Token,
+            CompanyId = invitation.CompanyId,
             CompanyName = invitation.Company.Name,
-            ExpiresAt = invitation.ExpiresAt
+            ExpiresAt = invitation.ExpiresAt,
+            IsUsed = invitation.IsUsed,
+            UsedAt = invitation.UsedAt,
+            UsedByUserId = invitation.UsedByUserId,
+            UsedByEmail = invitation.UsedByEmail
         };
     }
 

@@ -1,6 +1,9 @@
 export interface UserStats {
-    total: number;
-    active: number;
-    admins: number;
-    createdLast30Days: number;
+    totalUsers: number;
+    activeUsers: number;
+    inactiveUsers: number;
+    usersByCompany: Array<{
+      companyName: string;
+      count: number;
+    }>;
   }

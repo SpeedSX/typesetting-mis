@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
+using Microsoft.Extensions.Configuration;
 using TypesettingMIS.Core.DTOs.Auth;
 using TypesettingMIS.Core.Entities;
 using TypesettingMIS.Core.Services;
@@ -15,7 +14,8 @@ public class AuthService(
     IJwtService jwtService,
     IPasswordHasher<User> passwordHasher,
     IInvitationService invitationService,
-    IHttpContextAccessor httpContextAccessor)
+    IHttpContextAccessor httpContextAccessor,
+    IConfiguration configuration)
     : IAuthService
 {
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto)
@@ -40,7 +40,7 @@ public class AuthService(
         {
             Token = refreshToken,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7)),
             IsRevoked = false
             // CreatedByIp = httpContext?.Connection?.RemoteIpAddress?.ToString()
         };
@@ -84,7 +84,7 @@ public class AuthService(
 
         // Get company from invitation
         var company = await context.Companies
-            .FirstOrDefaultAsync(c => c.Name == invitation.CompanyName && !c.IsDeleted);
+            .FirstOrDefaultAsync(c => c.Id == invitation.CompanyId && !c.IsDeleted);
 
         if (company == null)
             return null;
@@ -135,7 +135,7 @@ public class AuthService(
         {
             Token = refreshToken,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7)),
             IsRevoked = false
         };
         context.RefreshTokens.Add(refreshTokenEntity);
@@ -175,10 +175,7 @@ public class AuthService(
             .ThenInclude(u => u.Role)
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
-        if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow ||
-            !CryptographicOperations.FixedTimeEquals(
-                Encoding.UTF8.GetBytes(refreshToken),
-                Encoding.UTF8.GetBytes(storedToken.Token)))
+        if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow)
         {
             return null; // Invalid or expired token
         }
@@ -205,7 +202,7 @@ public class AuthService(
         {
             Token = newRefreshToken,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7)),
             IsRevoked = false
         };
         context.RefreshTokens.Add(newRefreshTokenEntity);

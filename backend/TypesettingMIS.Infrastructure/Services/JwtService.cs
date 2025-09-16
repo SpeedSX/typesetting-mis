@@ -10,7 +10,7 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
 {
     public string GenerateToken(User user)
     {
-        var key = jwtConfig.GetSigningKey();
+        var key = new SymmetricSecurityKey(jwtConfig.GetSigningKeyBytes());
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claimsList = new List<Claim>
@@ -52,7 +52,18 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
         try
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            tokenHandler.ValidateToken(token, jwtConfig.GetTokenValidationParameters(), out SecurityToken validatedToken);
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtConfig.GetIssuer(),
+                ValidAudience = jwtConfig.GetAudience(),
+                IssuerSigningKey = new SymmetricSecurityKey(jwtConfig.GetSigningKeyBytes()),
+                ClockSkew = TimeSpan.Zero // Consistent with manual validation
+            };
+            tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
             return true;
         }
         catch

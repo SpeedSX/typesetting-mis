@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -10,6 +9,10 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
 {
     public static TokenValidationParameters GetTokenValidationParameters(IConfiguration configuration)
     {
+        var jwtKey = configuration["Jwt:Key"];
+        if (string.IsNullOrEmpty(jwtKey))
+            throw new InvalidOperationException("JWT key is not configured");
+
         return new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -18,47 +21,37 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
             ValidateIssuerSigningKey = true,
             ValidIssuer = configuration["Jwt:Issuer"],
             ValidAudience = configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ClockSkew = TimeSpan.Zero // Consistent with manual validation
         };
-    }
-
-    public TokenValidationParameters GetTokenValidationParameters()
-    {
-        return new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = GetIssuer(),
-            ValidAudience = GetAudience(),
-            IssuerSigningKey = GetSigningKey(),
-            ClockSkew = TimeSpan.Zero // Consistent with manual validation
-        };
-    }
-
-    public SymmetricSecurityKey GetSigningKey()
-    {
-        var jwtKey = configuration["Jwt:Key"];
-        if (string.IsNullOrEmpty(jwtKey))
-            throw new InvalidOperationException("JWT key is not configured");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-        return key;
     }
 
     public string GetIssuer()
     {
-        return configuration["Jwt:Issuer"]!;
+        var issuer = configuration["Jwt:Issuer"];
+        if (string.IsNullOrWhiteSpace(issuer))
+            throw new InvalidOperationException("JWT issuer is not configured");
+        return issuer;
     }
 
     public string GetAudience()
     {
-        return configuration["Jwt:Audience"]!;
+        var audience = configuration["Jwt:Audience"];
+        if (string.IsNullOrWhiteSpace(audience))
+            throw new InvalidOperationException("JWT audience is not configured");
+        return audience;
     }
 
     public int GetExpiryMinutes()
     {
         return int.Parse(configuration["Jwt:ExpiryMinutes"] ?? "60");
+    }
+
+    public byte[] GetSigningKeyBytes()
+    {
+        var jwtKey = configuration["Jwt:Key"];
+        if (string.IsNullOrEmpty(jwtKey))
+            throw new InvalidOperationException("JWT key is not configured");
+        return Encoding.UTF8.GetBytes(jwtKey);
     }
 }
