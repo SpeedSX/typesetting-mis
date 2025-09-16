@@ -146,18 +146,20 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
             fullWidth
             label="Invitation URL"
             value={invitationUrl}
-            InputProps={{
-              readOnly: true,
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={handleCopyUrl} edge="end" aria-label="Copy invitation URL">
-                <ContentCopy />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-        sx={{ mb: 2 }}
-      />
+            slotProps={{
+              input: {
+                readOnly: true,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleCopyUrl} edge="end" aria-label="Copy invitation URL">
+                      <ContentCopy />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }
+            }}
+            sx={{ mb: 2 }}
+          />
 
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <Button
