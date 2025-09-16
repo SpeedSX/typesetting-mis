@@ -1,0 +1,29 @@
+---
+globs: frontend/**/*.ts,frontend/**/*.tsx
+---
+
+# Frontend Development Patterns
+
+## Component Structure
+- Use functional components with TypeScript
+
+## API Service Patterns
+- Centralize API calls in [api.ts](mdc:frontend/src/services/api.ts)
+- Use Axios with interceptors for auth tokens
+- Include `withCredentials: true` for httpOnly cookies
+
+## Type Safety
+- Define types in [types/](mdc:frontend/src/types/) directory
+- Use interfaces for component props
+
+## Form Patterns
+- Use controlled components with state
+- Implement validation with error states
+- Show loading states during async operations
+- Clear errors on form close (see [AddCompanyForm.tsx](mdc:frontend/src/components/AddCompanyForm.tsx))
+
+## Authentication Flow
+- Use [ProtectedRoute](mdc:frontend/src/components/ProtectedRoute.tsx) for route protection
+
+## UI Patterns
+- Implement loading states with [CircularProgress](mdc:frontend/src/components/ProtectedRoute.tsx)

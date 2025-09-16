@@ -36,7 +36,6 @@ const RegisterPage: React.FC = () => {
   const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
   const [searchParams] = useSearchParams();
   const invitationTokenFromUrl = searchParams.get('invite');
-  const companyIdFromUrl = searchParams.get('companyId'); // Fallback for old links
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -64,12 +63,6 @@ const RegisterPage: React.FC = () => {
         } finally {
           setIsValidatingInvitation(false);
         }
-      } else if (companyIdFromUrl) {
-        // Fallback for old companyId-based links
-        setFormData(prev => ({
-          ...prev,
-          invitationToken: companyIdFromUrl // This will be handled as companyId in the backend
-        }));
       }
 
       return () => {
@@ -78,7 +71,7 @@ const RegisterPage: React.FC = () => {
     };
 
     validateInvitation();
-  }, [dispatch, invitationTokenFromUrl, companyIdFromUrl]);
+  }, [dispatch, invitationTokenFromUrl]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -239,17 +232,6 @@ const RegisterPage: React.FC = () => {
               onChange={handleChange}
               error={!!errors.email}
               helperText={errors.email}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="companyId"
-              label="Company"
-              name="companyId"
-              value={formData.companyId ? (companyIdFromUrl ? "Company (from invitation)" : "Test Company (Default)") : "Loading..."}
-              disabled
-              helperText={companyIdFromUrl ? "You're registering for a specific company via invitation link" : "Default company for initial registration"}
             />
             <TextField
               margin="normal"

@@ -1,0 +1,31 @@
+---
+alwaysApply: true
+---
+
+# Development Workflow
+
+## Getting Started
+1. **Backend**: Run from [backend/](mdc:backend/) directory with `dotnet run --project TypesettingMIS.API`
+2. **Frontend**: Run from [frontend/](mdc:frontend/) directory with `npm run dev`
+3. Use PowerShell syntax in Terminal
+
+## Code Organization
+- **Feature-Based**: Group related files by feature (auth, companies, users)
+- **Layer Separation**: Keep API, Core, Infrastructure, and Application layers separate
+- **Type Safety**: Use TypeScript interfaces for all data structures
+- **Consistent Naming**: Follow C# conventions for backend, camelCase for frontend
+
+## Testing Strategy
+- **Unit Tests**: Test individual components and services
+- **Integration Tests**: Test API endpoints and database operations
+- **E2E Tests**: Test complete user workflows
+- **Manual Testing**: Test invitation flow and multi-tenant scenarios
+
+## Database Changes
+1. Configure entity in OnModelCreating method
+2. Create migration with `dotnet ef migrations add <Name>`
+3. Update database with `dotnet ef database update`
+
+## Frontend Development
+1. Add API methods to [api.ts](mdc:frontend/src/services/api.ts)
+2. Create Redux slice in [store/slices/](mdc:frontend/src/store/slices/)

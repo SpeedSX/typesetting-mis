@@ -1,0 +1,23 @@
+---
+globs: frontend/**/*.ts,frontend/**/*.tsx,backend/**/*.cs
+---
+
+# Error Handling Patterns
+
+## Frontend Error Handling
+- **API Errors**: Use try/catch with [apiService](mdc:frontend/src/services/api.ts) calls
+- **Redux Errors**: Store errors in slice state and display with [Alert](mdc:frontend/src/pages/RegisterPage.tsx) components
+- **Form Validation**: Show field-specific errors with helper text
+- **Loading States**: Disable forms during async operations
+
+## Error Recovery
+- **Clear Errors**: Clear error state when forms are closed or reset
+- **Retry Logic**: Allow users to retry failed operations
+- **Fallback UI**: Show appropriate fallback when data fails to load
+- **User Feedback**: Always provide clear feedback for user actions
+
+## Logging Patterns
+- **Frontend**: Use console.error for debugging, don't expose sensitive data
+- **Backend**: Use structured logging with appropriate log levels
+- **Error Context**: Include relevant context in error messages
+- **Security**: Never log sensitive information like passwords or tokens

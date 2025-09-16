@@ -47,7 +47,7 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
   const baseUrl = window.location.origin;
   const invitationUrl = invitation 
     ? `${baseUrl}/register?invite=${encodeURIComponent(invitation.token)}`
-    : `${baseUrl}/register?companyId=${encodeURIComponent(companyId)}`;
+    : `${baseUrl}/register`;
   
   const fullInvitationText = customMessage 
     ? `${customMessage}\n\nRegistration Link: ${invitationUrl}`

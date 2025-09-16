@@ -1,0 +1,30 @@
+---
+globs: backend/**/*.cs,frontend/**/*.ts,frontend/**/*.tsx
+---
+
+# Multi-Tenant Architecture Patterns
+
+## Backend Tenant Context
+- Use [ITenantContext](mdc:backend/TypesettingMIS.Core/Services/ITenantContext.cs) for tenant resolution
+
+## Data Isolation
+- **Shared Entities**: Companies, EquipmentCategories, RefreshTokens, Invitations
+- **Tenant-Specific Entities**: Users, Roles, Equipment, Services, Products, Customers, Quotes, Orders, Invoices, Inventory, PricingRules
+- Use `CompanyId` foreign key for tenant-specific data
+- Filter queries by tenant context
+
+## Frontend Tenant Awareness
+- Check user's company context from auth state
+- Hide/show features based on user role and company
+- Use company-specific API endpoints where applicable
+- Handle tenant switching gracefully
+
+## Database Design
+- Separate shared and tenant-specific tables
+- Implement soft deletes with `IsDeleted` flag
+
+## API Design
+- **Admin Endpoints**: `/api/admin/*` - Cross-tenant operations
+- **User Endpoints**: `/api/user/*` - Tenant-scoped operations
+- **Auth Endpoints**: `/api/auth/*` - Authentication operations
+- Use tenant context in all data operations

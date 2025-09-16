@@ -1,5 +1,3 @@
-using TypesettingMIS.Core.Entities;
-
 namespace TypesettingMIS.Core.Entities;
 
 public class RefreshToken : BaseEntity

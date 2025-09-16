@@ -1,0 +1,28 @@
+---
+alwaysApply: true
+---
+
+# TypesettingMIS Project Structure
+
+This is a multi-tenant typesetting management system with separate frontend and backend components.
+
+## Backend Structure
+- **API Layer**: [backend/TypesettingMIS.API/](mdc:backend/TypesettingMIS.API/) - ASP.NET Core Web API
+- **Core Layer**: [backend/TypesettingMIS.Core/](mdc:backend/TypesettingMIS.Core/) - Domain entities, DTOs, and interfaces
+- **Infrastructure Layer**: [backend/TypesettingMIS.Infrastructure/](mdc:backend/TypesettingMIS.Infrastructure/) - Data access, services, and external dependencies
+- **Application Layer**: [backend/TypesettingMIS.Application/](mdc:backend/TypesettingMIS.Application/) - Business logic and use cases
+
+## Frontend Structure
+- **React App**: [frontend/src/](mdc:frontend/src/) - TypeScript React application with Vite
+- **Components**: [frontend/src/components/](mdc:frontend/src/components/) - Reusable UI components
+- **Pages**: [frontend/src/pages/](mdc:frontend/src/pages/) - Route-based page components
+- **Store**: [frontend/src/store/](mdc:frontend/src/store/) - Redux Toolkit state management
+- **Services**: [frontend/src/services/](mdc:frontend/src/services/) - API service layer
+- **Types**: [frontend/src/types/](mdc:frontend/src/types/) - TypeScript type definitions
+
+## Key Features
+- Multi-tenant architecture with company-based data isolation
+- Role-based access control (Admin, User roles)
+- Secure invitation system with server-issued tokens
+- JWT authentication with httpOnly refresh tokens
+- PostgreSQL database with Entity Framework Core
