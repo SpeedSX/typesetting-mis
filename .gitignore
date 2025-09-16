@@ -118,7 +118,6 @@ packages/
 dump.rdb
 
 # Docker
-.dockerignore
 docker-compose.override.yml
 
 # Project-specific
