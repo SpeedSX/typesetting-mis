@@ -36,9 +36,11 @@ class ApiService {
         if (error.response?.status === 401) {
           // Token expired or invalid, redirect to login
           localStorage.removeItem('authToken');
-          if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-            window.location.href = '/login';
-          }        
+          if (typeof window !== 'undefined') {
+            const p = window.location.pathname;
+            const isAuthPage = p === '/login' || p === '/register';
+            if (!isAuthPage) window.location.href = '/login';
+          }       
         }
         return Promise.reject(error);
       }
@@ -80,7 +82,7 @@ class ApiService {
   }
 
   async getUserStats(): Promise<UserStats> {
-    const response: AxiosResponse<any> = await this.api.get('/admin/users/stats');
+    const response: AxiosResponse<UserStats> = await this.api.get('/admin/users/stats');
     return response.data;
   }
 

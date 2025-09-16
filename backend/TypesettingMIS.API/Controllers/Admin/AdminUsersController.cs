@@ -48,9 +48,9 @@ public class AdminUsersController(ApplicationDbContext context, ITenantContext t
         var activeUsers = await context.Users.CountAsync(u => u.IsActive, cancellationToken);
         var usersByCompany = await context.Users
             .AsNoTracking()
-            .Include(u => u.Company)
-            .GroupBy(u => u.Company != null ? u.Company.Name : "(none)")
-            .Select(g => new { CompanyName = g.Key, Count = g.Count() })
+            .GroupBy(u => new { u.CompanyId, CompanyName = u.Company != null ? u.Company.Name : "(none)" })
+            .Select(g => new { CompanyName = g.Key.CompanyName, Count = g.Count() })
+            .OrderBy(x => x.CompanyName)
             .ToListAsync(cancellationToken);
 
         return Ok(new

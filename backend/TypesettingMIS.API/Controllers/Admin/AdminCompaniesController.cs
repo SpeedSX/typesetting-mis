@@ -123,8 +123,8 @@ public class AdminCompaniesController(ApplicationDbContext context, ITenantConte
         }
 
         if (updateCompanyDto.Name != null)
-            company.Name = updateCompanyDto.Name;
-        
+            company.Name = updateCompanyDto.Name.Trim();
+
         if (updateCompanyDto.Settings != null)
             company.Settings = updateCompanyDto.Settings;
         

@@ -10,6 +10,8 @@ namespace TypesettingMIS.API.Controllers;
 public class AuthController(IAuthService authService, IWebHostEnvironment environment, IJwtConfigurationService jwtConfiguration)
     : ControllerBase
 {
+    private const string RefreshCookieName = "refreshToken";
+
     /// <summary>
     /// User login - returns JWT token and user information, sets httpOnly refresh token cookie
     /// </summary>
@@ -25,10 +27,13 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         }
 
         var cookieOptions = BuildRefreshCookieOptions();
-        Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
+
+        Response.Cookies.Append(RefreshCookieName, result.RefreshToken, cookieOptions);
 
         // Remove refresh token from response body for security
         result.RefreshToken = string.Empty;
+
+        SetNoStoreHeaders();
 
         return Ok(result);
     }
@@ -51,10 +56,12 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         // Set httpOnly refresh token cookie
         var cookieOptions = BuildRefreshCookieOptions();
 
-        Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
+        Response.Cookies.Append(RefreshCookieName, result.RefreshToken, cookieOptions);
 
         // Remove refresh token from response body for security
         result.RefreshToken = string.Empty;
+
+        SetNoStoreHeaders();
 
         return Ok(result);
     }
@@ -82,10 +89,12 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
 
         var cookieOptions = BuildRefreshCookieOptions();
 
-        Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
+        Response.Cookies.Append(RefreshCookieName, result.RefreshToken, cookieOptions);
 
         // Remove refresh token from response body for security
         result.RefreshToken = string.Empty;
+
+        SetNoStoreHeaders();
 
         return Ok(result);
     }
@@ -104,7 +113,7 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         }
 
         // Clear the refresh token cookie
-        Response.Cookies.Delete("refreshToken", BuildRefreshCookieOptions(forDeletion: true));
+        Response.Cookies.Delete(RefreshCookieName, BuildRefreshCookieOptions(forDeletion: true));
 
         return Ok(new { message = "Logged out successfully" });
     }
@@ -127,17 +136,26 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         var roleName = User.FindFirst("role_name")?.Value;
         var isActive = User.FindFirst("is_active")?.Value;
 
-        if (userId == null)
+        if (string.IsNullOrWhiteSpace(userId))
         {
             return Unauthorized();
         }
 
+        if (!Guid.TryParse(userId, out var parsedUserId))
+        {
+            return Unauthorized();
+        }
+
+        var parts = userName?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? [];
+        var first = given ?? (parts.Length > 0 ? parts[0] : "");
+        var last = surname ?? (parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : "");
+
         var user = new UserDto
         {
-            Id = Guid.Parse(userId),
+            Id = parsedUserId,
             Email = userEmail ?? "",
-            FirstName = given ?? (userName?.Split(' ').FirstOrDefault() ?? ""),
-            LastName = surname ?? (userName?.Split(' ').Skip(1).FirstOrDefault() ?? ""),
+            FirstName = first,
+            LastName = last,
             CompanyId = Guid.TryParse(companyId, out var cid) ? cid : Guid.Empty,
             RoleId = Guid.TryParse(roleId, out var rid) ? rid : Guid.Empty,
             RoleName = roleName ?? "",
@@ -155,17 +173,24 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = !environment.IsDevelopment(),
+            // SameSite=None requires Secure=true; override even in Development to avoid silent drops.
+            Secure = sameSite == SameSiteMode.None || !environment.IsDevelopment(),
             SameSite = sameSite,
-            Path = "/api/auth"
+            Path = "/api"
         };
 
         if (!forDeletion)
         {
-            cookieOptions.Expires =
-                DateTime.UtcNow.AddDays(jwtConfiguration.GetRefreshTokenExpiryDays());
+            cookieOptions.MaxAge = TimeSpan.FromDays(jwtConfiguration.GetRefreshTokenExpiryDays());
         }
 
         return cookieOptions;
+    }
+
+    private void SetNoStoreHeaders()
+    {
+        Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+        Response.Headers["Pragma"] = "no-cache";
+        Response.Headers["Expires"] = "0";
     }
 }

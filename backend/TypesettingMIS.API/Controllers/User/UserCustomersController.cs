@@ -142,10 +142,10 @@ public class UserCustomersController(
         }
 
         if (updateCustomerDto.Name != null)
-            customer.Name = updateCustomerDto.Name;
-        
+            customer.Name = updateCustomerDto.Name.Trim();
+
         if (updateCustomerDto.Email != null)
-            customer.Email = updateCustomerDto.Email;
+            customer.Email = updateCustomerDto.Email.Trim().ToLowerInvariant();
 
         if (updateCustomerDto.Phone != null)
             customer.Phone = updateCustomerDto.Phone.Trim();

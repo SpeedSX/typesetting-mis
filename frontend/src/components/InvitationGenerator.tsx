@@ -38,14 +38,19 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
       });
       setInvitation(newInvitation);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const msg = (await import('axios')).default.isAxiosError(err)
+        ? err.response?.data?.message
+        : undefined;  
       setError(msg || 'Failed to generate invitation');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const baseUrl =
+    import.meta.env.VITE_PUBLIC_BASE_URL ??
+    (typeof window !== 'undefined' ? window.location.origin : '');
+
   const invitationUrl = invitation 
     ? `${baseUrl}/register?invite=${encodeURIComponent(invitation.token)}`
     : `${baseUrl}/register`;

@@ -25,7 +25,7 @@ const initialForm: Omit<CreateCompanyRequest, 'settings'> = {
   subscriptionPlan: 'Basic',
 };
 
-const initialSettings: CompanySettings = DEFAULT_COMPANY_SETTINGS;
+const initialSettings: CompanySettings = { ...DEFAULT_COMPANY_SETTINGS };
 
 interface AddCompanyFormProps {
   open: boolean;

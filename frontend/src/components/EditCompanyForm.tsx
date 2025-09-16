@@ -25,7 +25,7 @@ const initialForm: Omit<UpdateCompanyRequest, 'settings'> = {
   isActive: true,
 };
 
-const initialSettings: CompanySettings = DEFAULT_COMPANY_SETTINGS;
+const initialSettings: CompanySettings = { ...DEFAULT_COMPANY_SETTINGS };
 
 interface EditCompanyFormProps {
   open: boolean;
@@ -57,7 +57,7 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
         setSettings(parsedSettings);
       } catch (error) {
         console.error('Error parsing settings:', error);
-        setSettings(initialSettings);
+        setSettings({ ...initialSettings });
       }
     }
   }, [open, company]);
