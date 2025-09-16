@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 using TypesettingMIS.Core.DTOs.Auth;
 using TypesettingMIS.Core.Entities;
 using TypesettingMIS.Core.Services;
@@ -7,41 +10,30 @@ using TypesettingMIS.Infrastructure.Data;
 
 namespace TypesettingMIS.Infrastructure.Services;
 
-public class AuthService : IAuthService
+public class AuthService(
+    ApplicationDbContext context,
+    IJwtService jwtService,
+    IPasswordHasher<User> passwordHasher,
+    IInvitationService invitationService,
+    IHttpContextAccessor httpContextAccessor)
+    : IAuthService
 {
-    private readonly ApplicationDbContext _context;
-    private readonly IJwtService _jwtService;
-    private readonly IPasswordHasher<User> _passwordHasher;
-    private readonly IInvitationService _invitationService;
-
-    public AuthService(
-        ApplicationDbContext context,
-        IJwtService jwtService,
-        IPasswordHasher<User> passwordHasher,
-        IInvitationService invitationService)
-    {
-        _context = context;
-        _jwtService = jwtService;
-        _passwordHasher = passwordHasher;
-        _invitationService = invitationService;
-    }
-
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto)
     {
-        var user = await _context.Users
+        var user = await context.Users
             .Include(u => u.Company)
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
-        if (user == null || !user.IsActive)
+        if (user is not { IsActive: true, PasswordHash: not null, Email: not null })
             return null;
 
-        var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
+        var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
         if (result != PasswordVerificationResult.Success)
             return null;
 
-        var token = _jwtService.GenerateToken(user);
-        var refreshToken = _jwtService.GenerateRefreshToken();
+        var token = jwtService.GenerateToken(user);
+        var refreshToken = jwtService.GenerateRefreshToken();
 
         // Store refresh token in database
         var refreshTokenEntity = new RefreshToken
@@ -50,9 +42,10 @@ public class AuthService : IAuthService
             UserId = user.Id,
             ExpiresAt = DateTime.UtcNow.AddDays(7),
             IsRevoked = false
+            // CreatedByIp = httpContext?.Connection?.RemoteIpAddress?.ToString()
         };
-        _context.RefreshTokens.Add(refreshTokenEntity);
-        await _context.SaveChangesAsync();
+        context.RefreshTokens.Add(refreshTokenEntity);
+        await context.SaveChangesAsync();
 
         return new AuthResponseDto
         {
@@ -78,26 +71,26 @@ public class AuthService : IAuthService
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto registerDto)
     {
         // Check if user already exists
-        var existingUser = await _context.Users
+        var existingUser = await context.Users
             .FirstOrDefaultAsync(u => u.Email == registerDto.Email);
 
         if (existingUser != null)
             return null;
 
         // Validate invitation token
-        var invitation = await _invitationService.ValidateInvitationAsync(registerDto.InvitationToken);
+        var invitation = await invitationService.ValidateInvitationAsync(registerDto.InvitationToken);
         if (invitation == null)
             return null;
 
         // Get company from invitation
-        var company = await _context.Companies
+        var company = await context.Companies
             .FirstOrDefaultAsync(c => c.Name == invitation.CompanyName && !c.IsDeleted);
 
         if (company == null)
             return null;
 
         // Get default role (or create one)
-        var defaultRole = await _context.Roles
+        var defaultRole = await context.Roles
             .FirstOrDefaultAsync(r => r.CompanyId == company.Id && r.Name == "User");
 
         if (defaultRole == null)
@@ -108,8 +101,8 @@ public class AuthService : IAuthService
                 CompanyId = company.Id,
                 Permissions = "[]" // Basic permissions
             };
-            _context.Roles.Add(defaultRole);
-            await _context.SaveChangesAsync();
+            context.Roles.Add(defaultRole);
+            await context.SaveChangesAsync();
         }
 
         // Create new user
@@ -123,19 +116,19 @@ public class AuthService : IAuthService
             IsActive = true
         };
 
-        user.PasswordHash = _passwordHasher.HashPassword(user, registerDto.Password);
+        user.PasswordHash = passwordHasher.HashPassword(user, registerDto.Password);
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
 
         // Load the user with related data
-        user = await _context.Users
+        user = await context.Users
             .Include(u => u.Company)
             .Include(u => u.Role)
             .FirstAsync(u => u.Id == user.Id);
 
-        var token = _jwtService.GenerateToken(user);
-        var refreshToken = _jwtService.GenerateRefreshToken();
+        var token = jwtService.GenerateToken(user);
+        var refreshToken = jwtService.GenerateRefreshToken();
 
         // Store refresh token in database
         var refreshTokenEntity = new RefreshToken
@@ -145,11 +138,11 @@ public class AuthService : IAuthService
             ExpiresAt = DateTime.UtcNow.AddDays(7),
             IsRevoked = false
         };
-        _context.RefreshTokens.Add(refreshTokenEntity);
-        await _context.SaveChangesAsync();
+        context.RefreshTokens.Add(refreshTokenEntity);
+        await context.SaveChangesAsync();
 
         // Mark invitation as used
-        await _invitationService.MarkInvitationAsUsedAsync(registerDto.InvitationToken, user.Id, user.Email);
+        await invitationService.MarkInvitationAsUsedAsync(registerDto.InvitationToken, user.Id, user.Email);
 
         return new AuthResponseDto
         {
@@ -175,32 +168,36 @@ public class AuthService : IAuthService
     public async Task<AuthResponseDto?> RefreshTokenAsync(string refreshToken)
     {
         // Find the refresh token in database
-        var storedToken = await _context.RefreshTokens
+        var storedToken = await context.RefreshTokens
             .Include(rt => rt.User)
             .ThenInclude(u => u.Company)
             .Include(rt => rt.User)
             .ThenInclude(u => u.Role)
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
-        if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow)
+        if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow ||
+            !CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(refreshToken),
+                Encoding.UTF8.GetBytes(storedToken.Token)))
         {
             return null; // Invalid or expired token
         }
 
         // Get the user
         var user = storedToken.User;
-        if (user == null || !user.IsActive)
+        if (user is not { IsActive: true, Email: not null })
         {
             return null; // User not found or inactive
         }
 
         // Generate new tokens
-        var newToken = _jwtService.GenerateToken(user);
-        var newRefreshToken = _jwtService.GenerateRefreshToken();
+        var newToken = jwtService.GenerateToken(user);
+        var newRefreshToken = jwtService.GenerateRefreshToken();
 
         // Revoke the old refresh token
         storedToken.IsRevoked = true;
         storedToken.RevokedAt = DateTime.UtcNow;
+        storedToken.RevokedByIp = httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
         storedToken.ReplacedByToken = newRefreshToken;
 
         // Store new refresh token
@@ -211,9 +208,9 @@ public class AuthService : IAuthService
             ExpiresAt = DateTime.UtcNow.AddDays(7),
             IsRevoked = false
         };
-        _context.RefreshTokens.Add(newRefreshTokenEntity);
+        context.RefreshTokens.Add(newRefreshTokenEntity);
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return new AuthResponseDto
         {
@@ -239,7 +236,7 @@ public class AuthService : IAuthService
     public async Task<bool> LogoutAsync(string refreshToken)
     {
         // Find and revoke the refresh token
-        var storedToken = await _context.RefreshTokens
+        var storedToken = await context.RefreshTokens
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
         if (storedToken != null)
@@ -247,7 +244,7 @@ public class AuthService : IAuthService
             storedToken.IsRevoked = true;
             storedToken.RevokedAt = DateTime.UtcNow;
             storedToken.ReasonRevoked = "User logout";
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
 
         return true;

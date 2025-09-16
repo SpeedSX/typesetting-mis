@@ -7,6 +7,8 @@ using TypesettingMIS.Infrastructure.Middleware;
 using TypesettingMIS.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using TypesettingMIS.Core.Entities;
+using TypesettingMIS.Core.Services;
+using TypesettingMIS.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,17 +44,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-        };
+        // Use centralized JWT configuration
+        options.TokenValidationParameters = JwtConfigurationService.GetTokenValidationParameters(builder.Configuration);
     });
 
 builder.Services.AddAuthorization();

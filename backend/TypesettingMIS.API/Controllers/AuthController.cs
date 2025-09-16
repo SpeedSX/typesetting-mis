@@ -7,7 +7,7 @@ namespace TypesettingMIS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IAuthService authService, IInvitationService invitationService) : ControllerBase
+public class AuthController(IAuthService authService, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
 {
     /// <summary>
     /// User login - returns JWT token and user information, sets httpOnly refresh token cookie
@@ -27,14 +27,14 @@ public class AuthController(IAuthService authService, IInvitationService invitat
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true, // Use HTTPS in production
+            Secure = !environment.IsDevelopment(),
             SameSite = SameSiteMode.Strict,
             Expires = DateTime.UtcNow.AddDays(7) // Adjust as needed
         };
         Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
 
         // Remove refresh token from response body for security
-        result.RefreshToken = null;
+        result.RefreshToken = string.Empty;
 
         return Ok(result);
     }
@@ -57,14 +57,14 @@ public class AuthController(IAuthService authService, IInvitationService invitat
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true, // Use HTTPS in production
+            Secure = !environment.IsDevelopment(),
             SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddDays(7) // Adjust as needed
+            Expires = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7))
         };
         Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
 
         // Remove refresh token from response body for security
-        result.RefreshToken = null;
+        result.RefreshToken = string.Empty;
 
         return Ok(result);
     }
@@ -94,14 +94,14 @@ public class AuthController(IAuthService authService, IInvitationService invitat
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true, // Use HTTPS in production
+            Secure = !environment.IsDevelopment(),
             SameSite = SameSiteMode.Strict,
             Expires = DateTime.UtcNow.AddDays(7) // Adjust as needed
         };
         Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
 
         // Remove refresh token from response body for security
-        result.RefreshToken = null;
+        result.RefreshToken = string.Empty;
 
         return Ok(result);
     }
@@ -123,7 +123,7 @@ public class AuthController(IAuthService authService, IInvitationService invitat
         Response.Cookies.Delete("refreshToken", new CookieOptions
         {
             HttpOnly = true,
-            Secure = true, // Use HTTPS in production
+            Secure = !environment.IsDevelopment(),
             SameSite = SameSiteMode.Strict
         });
         
@@ -136,7 +136,7 @@ public class AuthController(IAuthService authService, IInvitationService invitat
     /// </summary>
     [HttpGet("me")]
     [Authorize]
-    public async Task<ActionResult<UserDto>> GetCurrentUser()
+    public ActionResult<UserDto> GetCurrentUser()
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;

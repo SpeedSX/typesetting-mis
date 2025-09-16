@@ -33,6 +33,7 @@ public static class DependencyInjection
         .AddEntityFrameworkStores<ApplicationDbContext>();
 
         // Add custom services
+        services.AddScoped<IJwtConfigurationService, JwtConfigurationService>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IInvitationService, InvitationService>();
