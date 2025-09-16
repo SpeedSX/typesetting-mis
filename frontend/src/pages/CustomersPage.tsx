@@ -71,13 +71,16 @@ const CustomersPage: React.FC = () => {
 
   const handleClose = () => {
     setOpen(false);
-    setEditingCustomer(null);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      taxId: '',
-    });
+    // Reset state after dialog closes to prevent title flash
+    setTimeout(() => {
+      setEditingCustomer(null);
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        taxId: '',
+      });
+    }, 150); // Small delay to allow dialog to close
   };
 
   const handleSubmit = () => {
@@ -89,7 +92,17 @@ const CustomersPage: React.FC = () => {
     } else {
       dispatch(createCustomer(formData));
     }
-    handleClose();
+    setOpen(false); // Close dialog immediately without resetting state
+    // Reset state after a short delay
+    setTimeout(() => {
+      setEditingCustomer(null);
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        taxId: '',
+      });
+    }, 150);
   };
 
   const handleDelete = (id: string) => {
