@@ -18,6 +18,17 @@ import { updateCompany, clearError } from '../store/slices/companySlice';
 import type { Company, UpdateCompanyRequest, CompanySettings } from '../types/company';
 import { TIMEZONES, CURRENCIES, SUBSCRIPTION_PLANS } from '../constants/org';
 
+const initialForm: UpdateCompanyRequest = {
+  name: '',
+  subscriptionPlan: '',
+  isActive: true,
+};
+
+const initialSettings: CompanySettings = {
+  timezone: 'UTC',
+  currency: 'USD',
+};
+
 interface EditCompanyFormProps {
   open: boolean;
   onClose: () => void;
@@ -28,16 +39,8 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
   const dispatch = useAppDispatch();
   const { isLoading, error } = useAppSelector((state) => state.company);
 
-  const [formData, setFormData] = useState<UpdateCompanyRequest>({
-    name: '',
-    subscriptionPlan: '',
-    isActive: true,
-  });
-
-  const [settings, setSettings] = useState<CompanySettings>({
-    timezone: 'UTC',
-    currency: 'USD',
-  });
+  const [formData, setFormData] = useState<UpdateCompanyRequest>(initialForm);
+  const [settings, setSettings] = useState<CompanySettings>(initialSettings);
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -129,15 +132,8 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
   };
 
   const handleClose = () => {
-    setFormData({
-      name: '',
-      subscriptionPlan: '',
-      isActive: true,
-    });
-    setSettings({
-      timezone: 'UTC',
-      currency: 'USD',
-    });
+    setFormData(initialForm);
+    setSettings(initialSettings);
     setValidationErrors({});
     dispatch(clearError()); // Clear any stale errors
     onClose();

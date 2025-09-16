@@ -33,7 +33,7 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        if (error.response?.status === 401) {
           // Token expired or invalid, redirect to login
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');

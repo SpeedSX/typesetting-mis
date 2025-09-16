@@ -39,14 +39,11 @@ function AppContent() {
     }
   }, [dispatch, isAuthenticated]);
 
-  // The ProtectedRoute component will handle the loading state for auth checking
-  const tokenExists = !!localStorage.getItem('authToken');
-
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={!isAuthenticated && !isCheckingAuth && !tokenExists ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path="/register" element={!isAuthenticated && !isCheckingAuth && !tokenExists ? <RegisterPage /> : <Navigate to="/" />} />
+        <Route path="/login" element={!isAuthenticated && !isCheckingAuth ? <LoginPage /> : <Navigate to="/" />} />
+        <Route path="/register" element={!isAuthenticated && !isCheckingAuth ? <RegisterPage /> : <Navigate to="/" />} />
         <Route
           path="/*"
           element={

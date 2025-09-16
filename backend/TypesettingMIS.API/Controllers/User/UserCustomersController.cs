@@ -20,7 +20,7 @@ public class UserCustomersController(
     /// Get all customers for the current tenant
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers()
+    public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers(CancellationToken cancellationToken)
     {
         if (!IsMultiTenant)
         {
@@ -29,6 +29,7 @@ public class UserCustomersController(
 
         var customers = await tenantAwareService
             .ApplyTenantFilter(context.Customers)
+            .AsNoTracking()
             .Where(c => !c.IsDeleted)
             .Select(c => new CustomerDto
             {
@@ -40,7 +41,7 @@ public class UserCustomersController(
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return Ok(customers);
     }
@@ -49,7 +50,7 @@ public class UserCustomersController(
     /// Get customer by ID
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<CustomerDto>> GetCustomer(Guid id)
+    public async Task<ActionResult<CustomerDto>> GetCustomer(Guid id, CancellationToken cancellationToken)
     {
         if (!IsMultiTenant)
         {
@@ -58,6 +59,7 @@ public class UserCustomersController(
 
         var customer = await tenantAwareService
             .ApplyTenantFilter(context.Customers)
+            .AsNoTracking()
             .Where(c => c.Id == id && !c.IsDeleted)
             .Select(c => new CustomerDto
             {
@@ -69,7 +71,7 @@ public class UserCustomersController(
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt
             })
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (customer == null)
         {
@@ -83,7 +85,7 @@ public class UserCustomersController(
     /// Create new customer
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<CustomerDto>> CreateCustomer(CreateCustomerDto createCustomerDto)
+    public async Task<ActionResult<CustomerDto>> CreateCustomer(CreateCustomerDto createCustomerDto, CancellationToken cancellationToken)
     {
         if (!IsMultiTenant)
         {
@@ -100,7 +102,7 @@ public class UserCustomersController(
         };
 
         context.Customers.Add(customer);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         var customerDto = new CustomerDto
         {
@@ -120,7 +122,7 @@ public class UserCustomersController(
     /// Update customer
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateCustomer(Guid id, UpdateCustomerDto updateCustomerDto)
+    public async Task<IActionResult> UpdateCustomer(Guid id, UpdateCustomerDto updateCustomerDto, CancellationToken cancellationToken)
     {
         if (!IsMultiTenant)
         {
@@ -129,7 +131,7 @@ public class UserCustomersController(
 
         var customer = await tenantAwareService
             .ApplyTenantFilter(context.Customers)
-            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, cancellationToken);
 
         if (customer == null)
         {
@@ -150,7 +152,7 @@ public class UserCustomersController(
 
         customer.UpdatedAt = DateTime.UtcNow;
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         return NoContent();
     }
@@ -159,7 +161,7 @@ public class UserCustomersController(
     /// Delete customer
     /// </summary>
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteCustomer(Guid id)
+    public async Task<IActionResult> DeleteCustomer(Guid id, CancellationToken cancellationToken)
     {
         if (!IsMultiTenant)
         {
@@ -168,7 +170,7 @@ public class UserCustomersController(
 
         var customer = await tenantAwareService
             .ApplyTenantFilter(context.Customers)
-            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, cancellationToken);
 
         if (customer == null)
         {
@@ -178,7 +180,7 @@ public class UserCustomersController(
         customer.IsDeleted = true;
         customer.UpdatedAt = DateTime.UtcNow;
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         return NoContent();
     }

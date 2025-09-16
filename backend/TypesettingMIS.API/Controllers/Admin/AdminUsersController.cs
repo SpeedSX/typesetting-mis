@@ -9,23 +9,16 @@ namespace TypesettingMIS.API.Controllers.Admin;
 [ApiController]
 [Route("api/admin/users")]
 [Authorize(Roles = "Admin")]
-public class AdminUsersController : BaseController
+public class AdminUsersController(ApplicationDbContext context, ITenantContext tenantContext)
+    : BaseController(tenantContext)
 {
-    private readonly ApplicationDbContext _context;
-
-    public AdminUsersController(ApplicationDbContext context, ITenantContext tenantContext) 
-        : base(tenantContext)
-    {
-        _context = context;
-    }
-
     /// <summary>
     /// Get all users across all companies (Admin only)
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<object>> GetUsers()
+    public async Task<ActionResult<object>> GetUsers(CancellationToken cancellationToken)
     {
-        var users = await _context.Users
+        var users = await context.Users
             .Include(u => u.Company)
             .Include(u => u.Role)
             .Select(u => new
@@ -39,7 +32,7 @@ public class AdminUsersController : BaseController
                 CompanyName = u.Company.Name,
                 RoleName = u.Role.Name
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return Ok(users);
     }
@@ -48,15 +41,15 @@ public class AdminUsersController : BaseController
     /// Get user count statistics (Admin only)
     /// </summary>
     [HttpGet("stats")]
-    public async Task<ActionResult<object>> GetUserStats()
+    public async Task<ActionResult<object>> GetUserStats(CancellationToken cancellationToken)
     {
-        var totalUsers = await _context.Users.CountAsync();
-        var activeUsers = await _context.Users.CountAsync(u => u.IsActive);
-        var usersByCompany = await _context.Users
+        var totalUsers = await context.Users.CountAsync(cancellationToken);
+        var activeUsers = await context.Users.CountAsync(u => u.IsActive, cancellationToken);
+        var usersByCompany = await context.Users
             .Include(u => u.Company)
             .GroupBy(u => u.Company.Name)
             .Select(g => new { CompanyName = g.Key, Count = g.Count() })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return Ok(new
         {

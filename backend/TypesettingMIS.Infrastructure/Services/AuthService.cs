@@ -32,6 +32,7 @@ public class AuthService(
         if (result != PasswordVerificationResult.Success)
             return null;
 
+        user.LastLogin = DateTime.UtcNow;
         var token = jwtService.GenerateToken(user);
         var refreshToken = jwtService.GenerateRefreshToken();
 
@@ -41,8 +42,8 @@ public class AuthService(
             Token = refreshToken,
             UserId = user.Id,
             ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("Jwt:RefreshTokenExpirationDays", 7)),
-            IsRevoked = false
-            // CreatedByIp = httpContext?.Connection?.RemoteIpAddress?.ToString()
+            IsRevoked = false,
+            //CreatedByIp = httpContext?.Connection?.RemoteIpAddress?.ToString()
         };
         context.RefreshTokens.Add(refreshTokenEntity);
         await context.SaveChangesAsync(cancellationToken);
@@ -51,7 +52,7 @@ public class AuthService(
         {
             Token = token,
             RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(60), // Should match JWT expiry
+            ExpiresAt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(token).ValidTo,
             User = new UserDto
             {
                 Id = user.Id,
@@ -148,7 +149,7 @@ public class AuthService(
         {
             Token = token,
             RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(60),
+            ExpiresAt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(token).ValidTo,
             User = new UserDto
             {
                 Id = user.Id,
@@ -213,7 +214,7 @@ public class AuthService(
         {
             Token = newToken,
             RefreshToken = newRefreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(60),
+            ExpiresAt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(newToken).ValidTo,
             User = new UserDto
             {
                 Id = user.Id,

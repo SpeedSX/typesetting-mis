@@ -16,7 +16,7 @@ const initialState: AuthState = {
   token: localStorage.getItem('authToken'),
   isAuthenticated: false, // Don't assume authentication until verified
   isLoading: false,
-  isCheckingAuth: false, // Will be set to true when getCurrentUser is dispatched
+  isCheckingAuth: !!localStorage.getItem('authToken'), // Set to true if token exists
   error: null,
 };
 

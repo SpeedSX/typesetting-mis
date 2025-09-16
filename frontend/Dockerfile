@@ -1,5 +1,5 @@
-# Use Node.js 18 Alpine for building
-FROM node:18-alpine AS build
+# Use Node.js 22 Alpine for building
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # Use Nginx Alpine for serving
-FROM nginx:alpine
+FROM nginx:1.28.0-alpine
 
 # Copy built assets from build stage
 COPY --from=build /app/dist /usr/share/nginx/html

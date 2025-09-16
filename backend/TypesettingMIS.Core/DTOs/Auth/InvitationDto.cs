@@ -24,5 +24,6 @@ public class CreateInvitationDto
 
 public class ValidateInvitationDto
 {
+    [Required]
     public string Token { get; set; } = string.Empty;
 }

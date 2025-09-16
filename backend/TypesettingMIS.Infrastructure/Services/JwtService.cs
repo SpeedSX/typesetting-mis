@@ -22,7 +22,6 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
             new("role_id", user.RoleId.ToString()),
             new("role_name", user.Role?.Name ?? ""),
             new("is_active", user.IsActive.ToString()),
-            new("is_active", user.IsActive.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64),
             new(JwtRegisteredClaimNames.Nbf, EpochTime.GetIntDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64)

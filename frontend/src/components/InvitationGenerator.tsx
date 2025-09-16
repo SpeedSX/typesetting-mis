@@ -11,7 +11,7 @@ import {
   Divider,
   CircularProgress,
 } from '@mui/material';
-import { ContentCopy, Share } from '@mui/icons-material';
+import { ContentCopy, Share, Link as LinkIcon } from '@mui/icons-material';
 import { apiService } from '../services/api';
 import type { Invitation } from '../types/invitation';
 
@@ -113,7 +113,7 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
             variant="contained"
             onClick={generateInvitation}
             disabled={isGenerating}
-            startIcon={isGenerating ? <CircularProgress size={20} /> : <Share />}
+            startIcon={isGenerating ? <CircularProgress size={20} /> : <LinkIcon />}
           >
             {isGenerating ? 'Generating...' : 'Generate Secure Invitation'}
           </Button>

@@ -149,7 +149,7 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
 
     private CookieOptions BuildRefreshCookieOptions(bool forDeletion = false)
     {
-        var sameSiteStr = configuration["JwtSettings:RefreshCookieSameSite"] ?? "Lax"; // Lax|Strict|None
+        var sameSiteStr = configuration["Jwt:RefreshCookieSameSite"] ?? "Lax"; // Lax|Strict|None
         var sameSite = SameSiteMode.Lax;
         if (Enum.TryParse<SameSiteMode>(sameSiteStr, true, out var parsed)) sameSite = parsed;
         var cookieOptions = new CookieOptions
@@ -157,13 +157,13 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
             HttpOnly = true,
             Secure = !environment.IsDevelopment(),
             SameSite = sameSite,
-            Path = "/"
+            Path = "/api/auth"
         };
 
         if (!forDeletion)
         {
             cookieOptions.Expires =
-                DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7));
+                DateTime.UtcNow.AddDays(configuration.GetValue<int>("Jwt:RefreshTokenExpirationDays", 7));
         }
 
         return cookieOptions;

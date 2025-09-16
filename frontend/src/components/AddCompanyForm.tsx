@@ -18,6 +18,21 @@ import { createCompany, clearError } from '../store/slices/companySlice';
 import type { CreateCompanyRequest, CompanySettings } from '../types/company';
 import { TIMEZONES, CURRENCIES, SUBSCRIPTION_PLANS } from '../constants/org';
 
+const initialForm: CreateCompanyRequest = {
+  name: '',
+  domain: '',
+  settings: JSON.stringify({
+    timezone: 'UTC',
+    currency: 'USD',
+  }),
+  subscriptionPlan: 'Basic',
+};
+
+const initialSettings: CompanySettings = {
+  timezone: 'UTC',
+  currency: 'USD',
+};
+
 interface AddCompanyFormProps {
   open: boolean;
   onClose: () => void;
@@ -27,20 +42,8 @@ const AddCompanyForm: React.FC<AddCompanyFormProps> = ({ open, onClose }) => {
   const dispatch = useAppDispatch();
   const { isLoading, error } = useAppSelector((state) => state.company);
 
-  const [formData, setFormData] = useState<CreateCompanyRequest>({
-    name: '',
-    domain: '',
-    settings: JSON.stringify({
-      timezone: 'UTC',
-      currency: 'USD',
-    }),
-    subscriptionPlan: 'Basic',
-  });
-
-  const [settings, setSettings] = useState<CompanySettings>({
-    timezone: 'UTC',
-    currency: 'USD',
-  });
+  const [formData, setFormData] = useState<CreateCompanyRequest>(initialForm);
+  const [settings, setSettings] = useState<CompanySettings>(initialSettings);
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -117,17 +120,8 @@ const AddCompanyForm: React.FC<AddCompanyFormProps> = ({ open, onClose }) => {
   };
 
   const handleClose = () => {
-    const defaultSettings = {
-      timezone: 'UTC',
-      currency: 'USD',
-    };
-    setFormData({
-      name: '',
-      domain: '',
-      settings: JSON.stringify(defaultSettings),
-      subscriptionPlan: 'Basic',
-    });
-    setSettings(defaultSettings);
+    setFormData(initialForm);
+    setSettings(initialSettings);
     setValidationErrors({});
     dispatch(clearError()); // Clear any stale errors
     onClose();

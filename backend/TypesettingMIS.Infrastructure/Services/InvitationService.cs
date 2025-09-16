@@ -96,6 +96,6 @@ public class InvitationService(ApplicationDbContext context) : IInvitationServic
     {
         var bytes = new byte[32];
         RandomNumberGenerator.Fill(bytes);
-        return Convert.ToBase64String(bytes).Replace("+", "-").Replace("/", "_").Replace("=", "");
+        return Microsoft.IdentityModel.Tokens.Base64UrlEncoder.Encode(bytes);
     }
 }

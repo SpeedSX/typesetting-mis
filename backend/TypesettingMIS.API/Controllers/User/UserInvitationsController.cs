@@ -23,7 +23,7 @@ public class UserInvitationsController(IInvitationService invitationService, ITe
 
         if (invitation == null)
         {
-            return BadRequest(new { message = "Invalid or expired invitation token" });
+            return NotFound(new { message = "Invalid or expired invitation token" });
         }
 
         return Ok(invitation);

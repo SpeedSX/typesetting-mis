@@ -19,9 +19,9 @@ jobs:
         run: docker build -t typesetting-mis-frontend:${{ github.sha }} ./frontend
       
       - name: Push images (if registry configured)
-        if: ${{ secrets.REGISTRY != '' }}
+        if: ${{ env.REGISTRY != '' }}
         run: |
-          docker tag typesetting-mis-backend:${{ github.sha }} ${{ secrets.REGISTRY }}/typesetting-mis-backend:${{ github.sha }}
-          docker tag typesetting-mis-frontend:${{ github.sha }} ${{ secrets.REGISTRY }}/typesetting-mis-frontend:${{ github.sha }}
-          docker push ${{ secrets.REGISTRY }}/typesetting-mis-backend:${{ github.sha }}
-          docker push ${{ secrets.REGISTRY }}/typesetting-mis-frontend:${{ github.sha }}
+          docker tag typesetting-mis-backend:${{ github.sha }} ${{ env.REGISTRY }}/typesetting-mis-backend:${{ github.sha }}
+          docker tag typesetting-mis-frontend:${{ github.sha }} ${{ env.REGISTRY }}/typesetting-mis-frontend:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/typesetting-mis-backend:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/typesetting-mis-frontend:${{ github.sha }}
