@@ -8,10 +8,12 @@ import { useAppDispatch, useAppSelector } from './hooks/redux';
 import { getCurrentUser } from './store/slices/authSlice';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
 import CustomersPage from './pages/CustomersPage';
+import CompaniesPage from './pages/CompaniesPage';
+import UsersPage from './pages/UsersPage';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import RoleBasedDashboard from './components/RoleBasedDashboard';
 
 const theme = createTheme({
   palette: {
@@ -32,10 +34,10 @@ function AppContent() {
   useEffect(() => {
     // Check if user is logged in on app start
     const token = localStorage.getItem('authToken');
-    if (token && !isAuthenticated) {
+    if (token && !isAuthenticated && !isLoading) {
       dispatch(getCurrentUser());
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, isLoading]);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -52,8 +54,10 @@ function AppContent() {
             <ProtectedRoute>
               <Layout>
                 <Routes>
-                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/" element={<RoleBasedDashboard />} />
                   <Route path="/customers" element={<CustomersPage />} />
+                  <Route path="/companies" element={<CompaniesPage />} />
+                  <Route path="/users" element={<UsersPage />} />
                 </Routes>
               </Layout>
             </ProtectedRoute>

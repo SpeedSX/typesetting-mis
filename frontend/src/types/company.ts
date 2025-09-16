@@ -2,7 +2,7 @@ export interface Company {
   id: string;
   name: string;
   domain: string;
-  settings: CompanySettings;
+  settings: string; // JSON string as stored in backend
   subscriptionPlan: string;
   isActive: boolean;
   createdAt: string;
@@ -17,13 +17,13 @@ export interface CompanySettings {
 export interface CreateCompanyRequest {
   name: string;
   domain: string;
-  settings: CompanySettings;
+  settings: string; // JSON string to match backend expectation
   subscriptionPlan: string;
 }
 
 export interface UpdateCompanyRequest {
   name?: string;
-  settings?: CompanySettings;
+  settings?: string; // JSON string to match backend expectation
   subscriptionPlan?: string;
   isActive?: boolean;
 }

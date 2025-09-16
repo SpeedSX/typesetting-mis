@@ -136,10 +136,10 @@ typesetting-mis/
    podman-compose -f podman-compose.yml up -d postgres redis
    
    # Start backend services
-   cd backend && dotnet run
+   cd backend\TypesettingMIS.API; dotnet run
    
    # Start frontend (in separate terminal)
-   cd frontend && npm run dev
+   cd frontend; npm run dev
    ```
 
 5. **Access the application**
@@ -209,14 +209,20 @@ journalctl --user -u podman
 2. **Run migrations**
    ```bash
    # Run database migrations
-   cd backend && dotnet ef database update
+   cd backend; dotnet ef database update
    ```
 
-3. **Seed initial data**
+3. **Start the application**
    ```bash
-   # Seed initial data
-   cd backend && dotnet run --seed-data
+   # Data is automatically seeded on startup
+   dotnet run
    ```
+
+⚠️ **Default Admin Credentials (LOCAL DEVELOPMENT ONLY):**
+Do not enable startup seeding or these credentials in staging/production. Gate seeding by environment or an explicit flag.
+  - **Email**: `admin@testcompany.com`
+   - **Password**: `Admin123!`
+   - **Role**: Admin
 
 ## 🔧 Configuration
 

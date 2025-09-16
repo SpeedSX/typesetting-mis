@@ -23,6 +23,9 @@ import {
   People,
   Logout,
   AccountCircle,
+  Business,
+  Settings,
+  BarChart,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
@@ -54,12 +57,31 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-    handleProfileMenuClose();
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout()).unwrap();
+      handleProfileMenuClose();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Even if logout fails, clear local storage and redirect
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      handleProfileMenuClose();
+      navigate('/login');
+    }
   };
 
-  const menuItems = [
+  // Check if user is admin
+  const isAdmin = (user?.roleName || '').toLowerCase() === 'admin';
+
+  const menuItems = isAdmin ? [
+    { text: 'Dashboard', icon: <Dashboard />, path: '/' },
+    { text: 'Companies', icon: <Business />, path: '/companies' },
+    { text: 'Users', icon: <People />, path: '/users' },
+    { text: 'Settings', icon: <Settings />, path: '/settings' },
+    { text: 'Reports', icon: <BarChart />, path: '/reports' },
+  ] : [
     { text: 'Dashboard', icon: <Dashboard />, path: '/' },
     { text: 'Customers', icon: <People />, path: '/customers' },
   ];
@@ -116,7 +138,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="body2" sx={{ mr: 2 }}>
-              {user?.companyName}
+              {(user?.companyName ?? 'Company')} • {(user?.roleName ?? '')}
             </Typography>
             <IconButton
               size="large"

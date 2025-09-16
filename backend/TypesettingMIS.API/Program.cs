@@ -1,13 +1,21 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
 using TypesettingMIS.Infrastructure;
 using TypesettingMIS.Infrastructure.Middleware;
+using TypesettingMIS.Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
+using TypesettingMIS.Core.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
@@ -68,5 +76,24 @@ app.UseAuthorization();
 app.UseMiddleware<TenantResolutionMiddleware>();
 
 app.MapControllers();
+
+// Seed initial data on startup (dev or explicit opt-in)
+if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Seed:Enabled"))
+{
+    using var scope = app.Services.CreateScope();
+    var logger = app.Logger;
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+    var seeder = new DataSeeder(context, passwordHasher);
+    try
+    {
+        await seeder.SeedAsync();
+        logger.LogInformation("Initial data seeded successfully");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error seeding data");
+    }
+}
 
 app.Run();
