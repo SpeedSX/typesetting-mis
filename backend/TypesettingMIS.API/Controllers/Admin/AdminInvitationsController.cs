@@ -7,23 +7,16 @@ namespace TypesettingMIS.API.Controllers.Admin;
 
 [Route("api/admin/invitations")]
 [Authorize(Roles = "Admin")]
-public class AdminInvitationsController : BaseController
+public class AdminInvitationsController(IInvitationService invitationService, ITenantContext tenantContext)
+    : BaseController(tenantContext)
 {
-    private readonly IInvitationService _invitationService;
-
-    public AdminInvitationsController(IInvitationService invitationService, ITenantContext tenantContext) 
-        : base(tenantContext)
-    {
-        _invitationService = invitationService;
-    }
-
     /// <summary>
     /// Create a new invitation for a company
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<InvitationDto>> CreateInvitation(CreateInvitationDto createInvitationDto)
+    public async Task<ActionResult<InvitationDto>> CreateInvitation(CreateInvitationDto createInvitationDto, CancellationToken cancellationToken)
     {
-        var invitation = await _invitationService.CreateInvitationAsync(createInvitationDto);
+        var invitation = await invitationService.CreateInvitationAsync(createInvitationDto, cancellationToken);
 
         if (invitation == null)
         {
@@ -38,9 +31,9 @@ public class AdminInvitationsController : BaseController
     /// </summary>
     [HttpPost("validate")]
     [AllowAnonymous]
-    public async Task<ActionResult<InvitationDto>> ValidateInvitation(ValidateInvitationDto validateInvitationDto)
+    public async Task<ActionResult<InvitationDto>> ValidateInvitation(ValidateInvitationDto validateInvitationDto, CancellationToken cancellationToken)
     {
-        var invitation = await _invitationService.ValidateInvitationAsync(validateInvitationDto.Token);
+        var invitation = await invitationService.ValidateInvitationAsync(validateInvitationDto.Token, cancellationToken);
 
         if (invitation == null)
         {

@@ -18,12 +18,12 @@ public class AuthService(
     IConfiguration configuration)
     : IAuthService
 {
-    public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto)
+    public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken)
     {
         var user = await context.Users
             .Include(u => u.Company)
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+            .FirstOrDefaultAsync(u => u.Email == loginDto.Email, cancellationToken);
 
         if (user is not { IsActive: true, PasswordHash: not null, Email: not null })
             return null;
@@ -45,7 +45,7 @@ public class AuthService(
             // CreatedByIp = httpContext?.Connection?.RemoteIpAddress?.ToString()
         };
         context.RefreshTokens.Add(refreshTokenEntity);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         return new AuthResponseDto
         {
@@ -68,30 +68,30 @@ public class AuthService(
         };
     }
 
-    public async Task<AuthResponseDto?> RegisterAsync(RegisterDto registerDto)
+    public async Task<AuthResponseDto?> RegisterAsync(RegisterDto registerDto, CancellationToken cancellationToken)
     {
         // Check if user already exists
         var existingUser = await context.Users
-            .FirstOrDefaultAsync(u => u.Email == registerDto.Email);
+            .FirstOrDefaultAsync(u => u.Email == registerDto.Email, cancellationToken);
 
         if (existingUser != null)
             return null;
 
         // Validate invitation token
-        var invitation = await invitationService.ValidateInvitationAsync(registerDto.InvitationToken);
+        var invitation = await invitationService.ValidateInvitationAsync(registerDto.InvitationToken, cancellationToken);
         if (invitation == null)
             return null;
 
         // Get company from invitation
         var company = await context.Companies
-            .FirstOrDefaultAsync(c => c.Id == invitation.CompanyId && !c.IsDeleted);
+            .FirstOrDefaultAsync(c => c.Id == invitation.CompanyId && !c.IsDeleted, cancellationToken);
 
         if (company == null)
             return null;
 
         // Get default role (or create one)
         var defaultRole = await context.Roles
-            .FirstOrDefaultAsync(r => r.CompanyId == company.Id && r.Name == "User");
+            .FirstOrDefaultAsync(r => r.CompanyId == company.Id && r.Name == "User", cancellationToken);
 
         if (defaultRole == null)
         {
@@ -102,7 +102,7 @@ public class AuthService(
                 Permissions = "[]" // Basic permissions
             };
             context.Roles.Add(defaultRole);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(cancellationToken);
         }
 
         // Create new user
@@ -119,13 +119,13 @@ public class AuthService(
         user.PasswordHash = passwordHasher.HashPassword(user, registerDto.Password);
 
         context.Users.Add(user);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         // Load the user with related data
         user = await context.Users
             .Include(u => u.Company)
             .Include(u => u.Role)
-            .FirstAsync(u => u.Id == user.Id);
+            .FirstAsync(u => u.Id == user.Id, cancellationToken);
 
         var token = jwtService.GenerateToken(user);
         var refreshToken = jwtService.GenerateRefreshToken();
@@ -139,10 +139,10 @@ public class AuthService(
             IsRevoked = false
         };
         context.RefreshTokens.Add(refreshTokenEntity);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         // Mark invitation as used
-        await invitationService.MarkInvitationAsUsedAsync(registerDto.InvitationToken, user.Id, user.Email);
+        await invitationService.MarkInvitationAsUsedAsync(registerDto.InvitationToken, user.Id, user.Email, cancellationToken);
 
         return new AuthResponseDto
         {
@@ -165,7 +165,7 @@ public class AuthService(
         };
     }
 
-    public async Task<AuthResponseDto?> RefreshTokenAsync(string refreshToken)
+    public async Task<AuthResponseDto?> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
     {
         // Find the refresh token in database
         var storedToken = await context.RefreshTokens
@@ -173,7 +173,7 @@ public class AuthService(
             .ThenInclude(u => u.Company)
             .Include(rt => rt.User)
             .ThenInclude(u => u.Role)
-            .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+            .FirstOrDefaultAsync(rt => rt.Token == refreshToken, cancellationToken);
 
         if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow)
         {
@@ -207,7 +207,7 @@ public class AuthService(
         };
         context.RefreshTokens.Add(newRefreshTokenEntity);
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         return new AuthResponseDto
         {
@@ -230,18 +230,18 @@ public class AuthService(
         };
     }
 
-    public async Task<bool> LogoutAsync(string refreshToken)
+    public async Task<bool> LogoutAsync(string refreshToken, CancellationToken cancellationToken)
     {
         // Find and revoke the refresh token
         var storedToken = await context.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+            .FirstOrDefaultAsync(rt => rt.Token == refreshToken, cancellationToken);
 
         if (storedToken != null)
         {
             storedToken.IsRevoked = true;
             storedToken.RevokedAt = DateTime.UtcNow;
             storedToken.ReasonRevoked = "User logout";
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(cancellationToken);
         }
 
         return true;

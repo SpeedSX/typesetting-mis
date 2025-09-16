@@ -14,9 +14,9 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
     /// </summary>
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
+    public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto, CancellationToken cancellationToken)
     {
-        var result = await authService.LoginAsync(loginDto);
+        var result = await authService.LoginAsync(loginDto, cancellationToken);
         
         if (result == null)
         {
@@ -44,9 +44,9 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
     /// </summary>
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
+    public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto, CancellationToken cancellationToken)
     {
-        var result = await authService.RegisterAsync(registerDto);
+        var result = await authService.RegisterAsync(registerDto, cancellationToken);
         
         if (result == null)
         {
@@ -74,7 +74,7 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
     /// </summary>
     [HttpPost("refresh")]
     [AllowAnonymous]
-    public async Task<ActionResult<AuthResponseDto>> RefreshToken()
+    public async Task<ActionResult<AuthResponseDto>> RefreshToken(CancellationToken cancellationToken)
     {
         // Read refresh token from httpOnly cookie
         if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken) || 
@@ -83,7 +83,7 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
             return Unauthorized(new { message = "No refresh token found in cookie" });
         }
 
-        var result = await authService.RefreshTokenAsync(refreshToken);
+        var result = await authService.RefreshTokenAsync(refreshToken, cancellationToken);
         
         if (result == null)
         {
@@ -111,12 +111,12 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
     /// </summary>
     [HttpPost("logout")]
     [Authorize]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
         // Read refresh token from httpOnly cookie
         if (Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
         {
-            await authService.LogoutAsync(refreshToken);
+            await authService.LogoutAsync(refreshToken, cancellationToken);
         }
 
         // Clear the refresh token cookie
