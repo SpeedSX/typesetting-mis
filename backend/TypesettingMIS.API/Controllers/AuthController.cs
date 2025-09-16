@@ -7,7 +7,8 @@ namespace TypesettingMIS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IAuthService authService, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
+public class AuthController(IAuthService authService, IWebHostEnvironment environment, IConfiguration configuration)
+    : ControllerBase
 {
     /// <summary>
     /// User login - returns JWT token and user information, sets httpOnly refresh token cookie
@@ -17,20 +18,13 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto, CancellationToken cancellationToken)
     {
         var result = await authService.LoginAsync(loginDto, cancellationToken);
-        
+
         if (result == null)
         {
             return Unauthorized(new { message = "Invalid email or password" });
         }
 
-        // Set httpOnly refresh token cookie
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = !environment.IsDevelopment(),
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7))
-        };
+        var cookieOptions = BuildRefreshCookieOptions();
         Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
 
         // Remove refresh token from response body for security
@@ -44,23 +38,19 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
     /// </summary>
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto, CancellationToken cancellationToken)
+    public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto,
+        CancellationToken cancellationToken)
     {
         var result = await authService.RegisterAsync(registerDto, cancellationToken);
-        
+
         if (result == null)
         {
             return BadRequest(new { message = "Registration failed. User may already exist or company not found." });
         }
 
         // Set httpOnly refresh token cookie
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = !environment.IsDevelopment(),
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7))
-        };
+        var cookieOptions = BuildRefreshCookieOptions();
+
         Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
 
         // Remove refresh token from response body for security
@@ -77,27 +67,21 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
     public async Task<ActionResult<AuthResponseDto>> RefreshToken(CancellationToken cancellationToken)
     {
         // Read refresh token from httpOnly cookie
-        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken) || 
+        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken) ||
             string.IsNullOrEmpty(refreshToken))
         {
             return Unauthorized(new { message = "No refresh token found in cookie" });
         }
 
         var result = await authService.RefreshTokenAsync(refreshToken, cancellationToken);
-        
+
         if (result == null)
         {
             return Unauthorized(new { message = "Invalid refresh token" });
         }
 
-        // Set new httpOnly refresh token cookie
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = !environment.IsDevelopment(),
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7))
-        };
+        var cookieOptions = BuildRefreshCookieOptions();
+
         Response.Cookies.Append("refreshToken", result.RefreshToken, cookieOptions);
 
         // Remove refresh token from response body for security
@@ -120,13 +104,8 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         }
 
         // Clear the refresh token cookie
-        Response.Cookies.Delete("refreshToken", new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = !environment.IsDevelopment(),
-            SameSite = SameSiteMode.Strict
-        });
-        
+        Response.Cookies.Delete("refreshToken", BuildRefreshCookieOptions(forDeletion: true));
+
         return Ok(new { message = "Logged out successfully" });
     }
 
@@ -141,6 +120,8 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
         var userName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+        var given = User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value;
+        var surname = User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value;
         var companyId = User.FindFirst("company_id")?.Value;
         var roleId = User.FindFirst("role_id")?.Value;
         var roleName = User.FindFirst("role_name")?.Value;
@@ -155,8 +136,8 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         {
             Id = Guid.Parse(userId),
             Email = userEmail ?? "",
-            FirstName = userName?.Split(' ').FirstOrDefault() ?? "",
-            LastName = userName?.Split(' ').Skip(1).FirstOrDefault() ?? "",
+            FirstName = given ?? (userName?.Split(' ').FirstOrDefault() ?? ""),
+            LastName = surname ?? (userName?.Split(' ').Skip(1).FirstOrDefault() ?? ""),
             CompanyId = Guid.TryParse(companyId, out var cid) ? cid : Guid.Empty,
             RoleId = Guid.TryParse(roleId, out var rid) ? rid : Guid.Empty,
             RoleName = roleName ?? "",
@@ -164,5 +145,27 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         };
 
         return Ok(user);
+    }
+
+    private CookieOptions BuildRefreshCookieOptions(bool forDeletion = false)
+    {
+        var sameSiteStr = configuration["JwtSettings:RefreshCookieSameSite"] ?? "Lax"; // Lax|Strict|None
+        var sameSite = SameSiteMode.Lax;
+        if (Enum.TryParse<SameSiteMode>(sameSiteStr, true, out var parsed)) sameSite = parsed;
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = !environment.IsDevelopment(),
+            SameSite = sameSite,
+            Path = "/"
+        };
+
+        if (!forDeletion)
+        {
+            cookieOptions.Expires =
+                DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7));
+        }
+
+        return cookieOptions;
     }
 }

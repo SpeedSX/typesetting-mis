@@ -1,13 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using System.Text.Json;
 using TypesettingMIS.Infrastructure;
 using TypesettingMIS.Infrastructure.Middleware;
 using TypesettingMIS.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using TypesettingMIS.Core.Entities;
-using TypesettingMIS.Core.Services;
 using TypesettingMIS.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +19,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+var devOrigin = builder.Configuration["Cors:DevOrigin"] ?? "http://localhost:5173";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -35,9 +33,10 @@ builder.Services.AddCors(options =>
         }
         else if (builder.Environment.IsDevelopment())
         {
-            policy.AllowAnyOrigin()
+            policy.WithOrigins(devOrigin)
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .AllowAnyMethod()
+                .AllowCredentials();
         }
         else
         {

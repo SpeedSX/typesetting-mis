@@ -94,10 +94,8 @@ public class InvitationService(ApplicationDbContext context) : IInvitationServic
 
     private static string GenerateSecureToken()
     {
-        // Generate a cryptographically secure random token
-        using var rng = RandomNumberGenerator.Create();
         var bytes = new byte[32];
-        rng.GetBytes(bytes);
+        RandomNumberGenerator.Fill(bytes);
         return Convert.ToBase64String(bytes).Replace("+", "-").Replace("/", "_").Replace("=", "");
     }
 }

@@ -7,7 +7,7 @@ export interface Invitation {
   companyName: string;
   expiresAt: ISODateString;
   isUsed: boolean;
-  usedAt: string | null;
+  usedAt: ISODateString | null;
   usedByUserId: string | null;
   usedByEmail: string | null;
 }

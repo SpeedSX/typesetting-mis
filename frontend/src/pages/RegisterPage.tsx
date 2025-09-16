@@ -64,13 +64,14 @@ const RegisterPage: React.FC = () => {
           setIsValidatingInvitation(false);
         }
       }
-
-      return () => {
-        dispatch(clearError());
-      };
     };
-
+  
     validateInvitation();
+  
+    // Move cleanup to the outer useEffect return
+    return () => {
+      dispatch(clearError());
+    };
   }, [dispatch, invitationTokenFromUrl]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,6 +162,12 @@ const RegisterPage: React.FC = () => {
             </Box>
           )}
 
+          {invitationError && (
+             <Alert severity="error" sx={{ mb: 2 }}>
+               {invitationError}
+             </Alert>
+           )}
+
           {!invitation && !isValidatingInvitation && !invitationError && (
             <Alert severity="warning" sx={{ mb: 2 }}>
               A valid invitation link is required to sign up.
@@ -188,8 +195,7 @@ const RegisterPage: React.FC = () => {
             onSubmit={handleSubmit} 
             sx={{ 
               mt: 1,
-              opacity: isValidatingInvitation || invitationError ? 0.6 : 1,
-              pointerEvents: isValidatingInvitation || invitationError ? 'none' : 'auto'
+              opacity: isValidatingInvitation ? 0.6 : 1
             }}
           >
             <Box sx={{ display: 'flex', gap: 2 }}>

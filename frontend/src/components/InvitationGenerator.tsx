@@ -37,8 +37,9 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
         expirationHours: 24 // 24 hours default
       });
       setInvitation(newInvitation);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to generate invitation');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setError(msg || 'Failed to generate invitation');
     } finally {
       setIsGenerating(false);
     }

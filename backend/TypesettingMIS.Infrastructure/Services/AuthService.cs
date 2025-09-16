@@ -40,7 +40,7 @@ public class AuthService(
         {
             Token = refreshToken,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7)),
+            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("Jwt:RefreshTokenExpirationDays", 7)),
             IsRevoked = false
             // CreatedByIp = httpContext?.Connection?.RemoteIpAddress?.ToString()
         };
@@ -135,7 +135,7 @@ public class AuthService(
         {
             Token = refreshToken,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7)),
+            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("Jwt:RefreshTokenExpirationDays", 7)),
             IsRevoked = false
         };
         context.RefreshTokens.Add(refreshTokenEntity);
@@ -202,7 +202,7 @@ public class AuthService(
         {
             Token = newRefreshToken,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7)),
+            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("Jwt:RefreshTokenExpirationDays", 7)),
             IsRevoked = false
         };
         context.RefreshTokens.Add(newRefreshTokenEntity);
@@ -241,6 +241,7 @@ public class AuthService(
             storedToken.IsRevoked = true;
             storedToken.RevokedAt = DateTime.UtcNow;
             storedToken.ReasonRevoked = "User logout";
+            storedToken.RevokedByIp = httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
             await context.SaveChangesAsync(cancellationToken);
         }
 

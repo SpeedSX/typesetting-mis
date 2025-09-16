@@ -21,7 +21,11 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
             new("company_id", user.CompanyId.ToString()),
             new("role_id", user.RoleId.ToString()),
             new("role_name", user.Role?.Name ?? ""),
-            new("is_active", user.IsActive.ToString())
+            new("is_active", user.IsActive.ToString()),
+            new("is_active", user.IsActive.ToString()),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64),
+            new(JwtRegisteredClaimNames.Nbf, EpochTime.GetIntDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64)
         };
 
         if (!string.IsNullOrWhiteSpace(user.Role?.Name))
@@ -44,7 +48,7 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
     {
         var bytes = new byte[32];
         System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
-        return Convert.ToBase64String(bytes);
+        return Base64UrlEncoder.Encode(bytes);
     }
 
     public bool ValidateToken(string token)

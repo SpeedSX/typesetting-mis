@@ -147,7 +147,7 @@ class ApiService {
   }
 
   async validateInvitation(request: ValidateInvitationRequest): Promise<Invitation> {
-    const response: AxiosResponse<Invitation> = await this.api.post('/admin/invitations/validate', request);
+    const response: AxiosResponse<Invitation> = await this.api.post('/user/invitations/validate', request);
     return response.data;
   }
 }

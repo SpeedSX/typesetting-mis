@@ -10,18 +10,12 @@ namespace TypesettingMIS.API.Controllers.User;
 [ApiController]
 [Route("api/user/customers")]
 [Authorize]
-public class UserCustomersController : BaseController
+public class UserCustomersController(
+    ApplicationDbContext context,
+    ITenantContext tenantContext,
+    ITenantAwareService tenantAwareService)
+    : BaseController(tenantContext)
 {
-    private readonly ApplicationDbContext _context;
-    private readonly ITenantAwareService _tenantAwareService;
-
-    public UserCustomersController(ApplicationDbContext context, ITenantContext tenantContext, ITenantAwareService tenantAwareService) 
-        : base(tenantContext)
-    {
-        _context = context;
-        _tenantAwareService = tenantAwareService;
-    }
-
     /// <summary>
     /// Get all customers for the current tenant
     /// </summary>
@@ -33,8 +27,8 @@ public class UserCustomersController : BaseController
             return BadRequest(new { message = "Tenant context is required for this operation" });
         }
 
-        var customers = await _tenantAwareService
-            .ApplyTenantFilter(_context.Customers)
+        var customers = await tenantAwareService
+            .ApplyTenantFilter(context.Customers)
             .Where(c => !c.IsDeleted)
             .Select(c => new CustomerDto
             {
@@ -62,8 +56,8 @@ public class UserCustomersController : BaseController
             return BadRequest(new { message = "Tenant context is required for this operation" });
         }
 
-        var customer = await _tenantAwareService
-            .ApplyTenantFilter(_context.Customers)
+        var customer = await tenantAwareService
+            .ApplyTenantFilter(context.Customers)
             .Where(c => c.Id == id && !c.IsDeleted)
             .Select(c => new CustomerDto
             {
@@ -105,8 +99,8 @@ public class UserCustomersController : BaseController
             CompanyId = CurrentTenantId!.Value
         };
 
-        _context.Customers.Add(customer);
-        await _context.SaveChangesAsync();
+        context.Customers.Add(customer);
+        await context.SaveChangesAsync();
 
         var customerDto = new CustomerDto
         {
@@ -133,8 +127,8 @@ public class UserCustomersController : BaseController
             return BadRequest(new { message = "Tenant context is required for this operation" });
         }
 
-        var customer = await _tenantAwareService
-            .ApplyTenantFilter(_context.Customers)
+        var customer = await tenantAwareService
+            .ApplyTenantFilter(context.Customers)
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
 
         if (customer == null)
@@ -156,7 +150,7 @@ public class UserCustomersController : BaseController
 
         customer.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return NoContent();
     }
@@ -172,8 +166,8 @@ public class UserCustomersController : BaseController
             return BadRequest(new { message = "Tenant context is required for this operation" });
         }
 
-        var customer = await _tenantAwareService
-            .ApplyTenantFilter(_context.Customers)
+        var customer = await tenantAwareService
+            .ApplyTenantFilter(context.Customers)
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
 
         if (customer == null)
@@ -184,7 +178,7 @@ public class UserCustomersController : BaseController
         customer.IsDeleted = true;
         customer.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return NoContent();
     }

@@ -5,6 +5,7 @@ using TypesettingMIS.Core.Services;
 
 namespace TypesettingMIS.API.Controllers.Admin;
 
+[ApiController]
 [Route("api/admin/invitations")]
 [Authorize(Roles = "Admin")]
 public class AdminInvitationsController(IInvitationService invitationService, ITenantContext tenantContext)
@@ -20,24 +21,7 @@ public class AdminInvitationsController(IInvitationService invitationService, IT
 
         if (invitation == null)
         {
-            return BadRequest(new { message = "Company not found or invitation creation failed" });
-        }
-
-        return Ok(invitation);
-    }
-
-    /// <summary>
-    /// Validate an invitation token
-    /// </summary>
-    [HttpPost("validate")]
-    [AllowAnonymous]
-    public async Task<ActionResult<InvitationDto>> ValidateInvitation(ValidateInvitationDto validateInvitationDto, CancellationToken cancellationToken)
-    {
-        var invitation = await invitationService.ValidateInvitationAsync(validateInvitationDto.Token, cancellationToken);
-
-        if (invitation == null)
-        {
-            return BadRequest(new { message = "Invalid or expired invitation token" });
+            return NotFound(new { message = "Company not found or invitation creation failed" });
         }
 
         return Ok(invitation);

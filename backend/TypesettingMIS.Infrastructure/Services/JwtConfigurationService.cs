@@ -44,7 +44,8 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
 
     public int GetExpiryMinutes()
     {
-        return int.Parse(configuration["Jwt:ExpiryMinutes"] ?? "60");
+        var raw = configuration["Jwt:ExpiryMinutes"];
+        return int.TryParse(raw, out var minutes) && minutes > 0 ? minutes : 60;
     }
 
     public byte[] GetSigningKeyBytes()
