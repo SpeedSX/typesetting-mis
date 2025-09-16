@@ -2,7 +2,7 @@ import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import type { AuthResponse, LoginRequest, RegisterRequest, User } from '../types/auth';
 import type { Company, CreateCompanyRequest, UpdateCompanyRequest } from '../types/company';
 import type { Customer, CreateCustomerRequest, UpdateCustomerRequest } from '../types/customer';
-import type { UserStats } from '../types/user';
+import type { UserStats, AdminUserListItem } from '../types/user';
 import type { Invitation, CreateInvitationRequest, ValidateInvitationRequest } from '../types/invitation';
 
 class ApiService {
@@ -36,7 +36,6 @@ class ApiService {
         if (error.response?.status === 401) {
           // Token expired or invalid, redirect to login
           localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
           if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
             window.location.href = '/login';
           }        
@@ -75,8 +74,8 @@ class ApiService {
   }
 
   // Admin User endpoints
-  async getUsers(): Promise<any[]> {
-    const response: AxiosResponse<User[]> = await this.api.get('/admin/users');
+  async getUsers(): Promise<AdminUserListItem[]> {
+    const response: AxiosResponse<AdminUserListItem[]> = await this.api.get('/admin/users');
     return response.data;
   }
 

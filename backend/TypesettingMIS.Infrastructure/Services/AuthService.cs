@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using TypesettingMIS.Core.DTOs.Auth;
 using TypesettingMIS.Core.Entities;
 using TypesettingMIS.Core.Services;
@@ -15,7 +14,7 @@ public class AuthService(
     IPasswordHasher<User> passwordHasher,
     IInvitationService invitationService,
     IHttpContextAccessor httpContextAccessor,
-    IConfiguration configuration)
+    IJwtConfigurationService jwtConfigurationService)
     : IAuthService
 {
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken)
@@ -41,7 +40,7 @@ public class AuthService(
         {
             Token = refreshToken,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("Jwt:RefreshTokenExpirationDays", 7)),
+            ExpiresAt = DateTime.UtcNow.AddDays(jwtConfigurationService.GetRefreshTokenExpiryDays()),
             IsRevoked = false,
             //CreatedByIp = httpContext?.Connection?.RemoteIpAddress?.ToString()
         };
@@ -136,7 +135,7 @@ public class AuthService(
         {
             Token = refreshToken,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("Jwt:RefreshTokenExpirationDays", 7)),
+            ExpiresAt = DateTime.UtcNow.AddDays(jwtConfigurationService.GetRefreshTokenExpiryDays()),
             IsRevoked = false
         };
         context.RefreshTokens.Add(refreshTokenEntity);
@@ -203,7 +202,7 @@ public class AuthService(
         {
             Token = newRefreshToken,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(configuration.GetValue<int>("Jwt:RefreshTokenExpirationDays", 7)),
+            ExpiresAt = DateTime.UtcNow.AddDays(jwtConfigurationService.GetRefreshTokenExpiryDays()),
             IsRevoked = false
         };
         context.RefreshTokens.Add(newRefreshTokenEntity);

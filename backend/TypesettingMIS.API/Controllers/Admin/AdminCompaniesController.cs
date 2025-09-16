@@ -20,7 +20,9 @@ public class AdminCompaniesController(ApplicationDbContext context, ITenantConte
     public async Task<ActionResult<IEnumerable<CompanyDto>>> GetCompanies(CancellationToken cancellationToken)
     {
         var companies = await context.Companies
+            .AsNoTracking()
             .Where(c => !c.IsDeleted)
+            .OrderBy(c => c.Name)
             .Select(c => new CompanyDto
             {
                 Id = c.Id,
@@ -44,6 +46,7 @@ public class AdminCompaniesController(ApplicationDbContext context, ITenantConte
     public async Task<ActionResult<CompanyDto>> GetCompany(Guid id, CancellationToken cancellationToken)
     {
         var company = await context.Companies
+            .AsNoTracking()
             .Where(c => c.Id == id && !c.IsDeleted)
             .Select(c => new CompanyDto
             {
@@ -70,12 +73,19 @@ public class AdminCompaniesController(ApplicationDbContext context, ITenantConte
     /// Create new company (Admin only)
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<CompanyDto>> CreateCompany(CreateCompanyDto createCompanyDto, CancellationToken cancellationToken)
+    public async Task<ActionResult<CompanyDto>> CreateCompany(CreateCompanyDto createCompanyDto,
+        CancellationToken cancellationToken)
     {
+        var normalizedName = createCompanyDto.Name.Trim();
+        var normalizedDomain = createCompanyDto.Domain.Trim().ToLowerInvariant();
+        var exists = await context.Companies
+            .AnyAsync(c => c.Domain == normalizedDomain && !c.IsDeleted, cancellationToken);
+        if (exists) return Conflict(new { message = "Domain already exists." });
+
         var company = new TypesettingMIS.Core.Entities.Company
         {
-            Name = createCompanyDto.Name,
-            Domain = createCompanyDto.Domain,
+            Name = normalizedName,
+            Domain = normalizedDomain,
             Settings = createCompanyDto.Settings,
             SubscriptionPlan = createCompanyDto.SubscriptionPlan
         };

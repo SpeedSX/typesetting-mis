@@ -17,17 +17,15 @@ import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { updateCompany, clearError } from '../store/slices/companySlice';
 import type { Company, UpdateCompanyRequest, CompanySettings } from '../types/company';
 import { TIMEZONES, CURRENCIES, SUBSCRIPTION_PLANS } from '../constants/org';
+import { DEFAULT_COMPANY_SETTINGS } from '../constants/companyDefaults';
 
-const initialForm: UpdateCompanyRequest = {
+const initialForm: Omit<UpdateCompanyRequest, 'settings'> = {
   name: '',
   subscriptionPlan: '',
   isActive: true,
 };
 
-const initialSettings: CompanySettings = {
-  timezone: 'UTC',
-  currency: 'USD',
-};
+const initialSettings: CompanySettings = DEFAULT_COMPANY_SETTINGS;
 
 interface EditCompanyFormProps {
   open: boolean;
@@ -39,7 +37,7 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
   const dispatch = useAppDispatch();
   const { isLoading, error } = useAppSelector((state) => state.company);
 
-  const [formData, setFormData] = useState<UpdateCompanyRequest>(initialForm);
+  const [formData, setFormData] = useState<Omit<UpdateCompanyRequest, 'settings'>>(initialForm);
   const [settings, setSettings] = useState<CompanySettings>(initialSettings);
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -55,11 +53,11 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
 
       // Parse settings JSON string
       try {
-        const parsedSettings = company.settings ? JSON.parse(company.settings) : { timezone: 'UTC', currency: 'USD' };
+        const parsedSettings = company.settings ? JSON.parse(company.settings) : initialSettings;
         setSettings(parsedSettings);
       } catch (error) {
         console.error('Error parsing settings:', error);
-        setSettings({ timezone: 'UTC', currency: 'USD' });
+        setSettings(initialSettings);
       }
     }
   }, [open, company]);
@@ -72,6 +70,7 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
         [settingField]: value,
       };
       setSettings(newSettings);
+      // keep only `settings` state; stringify on submit
     } else {
       setFormData(prev => ({
         ...prev,
@@ -119,12 +118,8 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
     }
 
     try {
-      const updateData: UpdateCompanyRequest = {
-        ...formData,
-        settings: JSON.stringify(settings),
-      };
-      
-      await dispatch(updateCompany({ id: company.id, companyData: updateData })).unwrap();
+      const payload: UpdateCompanyRequest = { ...formData, settings: JSON.stringify(settings) };
+      await dispatch(updateCompany({ id: company.id, companyData: payload })).unwrap();
       handleClose();
     } catch (error) {
       // Error is handled by Redux and displayed via the error state
@@ -132,8 +127,8 @@ const EditCompanyForm: React.FC<EditCompanyFormProps> = ({ open, onClose, compan
   };
 
   const handleClose = () => {
-    setFormData(initialForm);
-    setSettings(initialSettings);
+    setFormData({ ...initialForm });
+    setSettings(() => ({ ...initialSettings }));
     setValidationErrors({});
     dispatch(clearError()); // Clear any stale errors
     onClose();

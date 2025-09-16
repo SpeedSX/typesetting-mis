@@ -7,7 +7,7 @@ namespace TypesettingMIS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IAuthService authService, IWebHostEnvironment environment, IConfiguration configuration)
+public class AuthController(IAuthService authService, IWebHostEnvironment environment, IConfiguration configuration, IJwtConfigurationService jwtConfiguration)
     : ControllerBase
 {
     /// <summary>
@@ -163,7 +163,7 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         if (!forDeletion)
         {
             cookieOptions.Expires =
-                DateTime.UtcNow.AddDays(configuration.GetValue<int>("Jwt:RefreshTokenExpirationDays", 7));
+                DateTime.UtcNow.AddDays(jwtConfiguration.GetRefreshTokenExpiryDays());
         }
 
         return cookieOptions;

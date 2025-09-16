@@ -48,6 +48,12 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
         return int.TryParse(raw, out var minutes) && minutes > 0 ? minutes : 60;
     }
 
+    public int GetRefreshTokenExpiryDays()
+    {
+        var raw = configuration["Jwt:RefreshTokenExpirationDays"];
+        return int.TryParse(raw, out var days) && days > 0 ? days : 7;
+    }
+
     public byte[] GetSigningKeyBytes()
     {
         var jwtKey = configuration["Jwt:Key"];

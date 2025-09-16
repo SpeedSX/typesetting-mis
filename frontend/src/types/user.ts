@@ -9,3 +9,14 @@ export interface UserStats {
     inactiveUsers: number;
     usersByCompany: UsersByCompanyItem[];
   }
+
+  export interface AdminUserListItem {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    isActive: boolean;
+    lastLogin: string | null;
+    companyName: string;
+    roleName: string;
+  }

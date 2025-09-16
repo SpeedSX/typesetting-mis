@@ -29,15 +29,13 @@ const theme = createTheme({
 
 function AppContent() {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, isCheckingAuth } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isCheckingAuth, token } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    // Check if user is logged in on app start
-    const token = localStorage.getItem('authToken');
     if (token && !isAuthenticated) {
       dispatch(getCurrentUser());
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, token]);
 
   return (
     <Router>

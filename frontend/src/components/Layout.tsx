@@ -66,7 +66,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       console.error('Logout failed:', error);
       // Even if logout fails, clear local storage and redirect
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       handleProfileMenuClose();
       navigate('/login');
     }

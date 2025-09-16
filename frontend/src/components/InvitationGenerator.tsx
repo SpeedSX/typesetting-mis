@@ -45,7 +45,7 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
     }
   };
 
-  const baseUrl = window.location.origin;
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const invitationUrl = invitation 
     ? `${baseUrl}/register?invite=${encodeURIComponent(invitation.token)}`
     : `${baseUrl}/register`;

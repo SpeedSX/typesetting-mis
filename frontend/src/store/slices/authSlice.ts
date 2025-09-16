@@ -27,13 +27,12 @@ export const login = createAsyncThunk(
     try {
       const response = await apiService.login(credentials);
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
       // refreshToken is now stored in httpOnly cookie, not localStorage
+      // User data is stored in Redux state, no need for localStorage
       return response;
     } catch (error: any) {
       // Clear any existing tokens on error
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Login failed');
     }
   }
@@ -45,13 +44,12 @@ export const register = createAsyncThunk(
     try {
       const response = await apiService.register(userData);
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
       // refreshToken is now stored in httpOnly cookie, not localStorage
+      // User data is stored in Redux state, no need for localStorage
       return response;
     } catch (error: any) {
       // Clear any existing tokens on error
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Registration failed');
     }
   }
@@ -68,7 +66,6 @@ export const getCurrentUser = createAsyncThunk(
       const status = error?.response?.status;
       if (status === 401 || status === 403) {
         localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
       }
       return rejectWithValue(error.response?.data?.message || 'Failed to get user');
     }
@@ -81,12 +78,10 @@ export const logout = createAsyncThunk(
     try {
       await apiService.logout();
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       // refreshToken cookie will be cleared by the backend
     } catch (error: any) {
       // Even if logout fails on server, clear local storage
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Logout failed');
     }
   }
@@ -98,13 +93,12 @@ export const refreshToken = createAsyncThunk(
     try {
       const response = await apiService.refreshToken();
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
       // refreshToken is stored in httpOnly cookie, not localStorage
+      // User data is stored in Redux state, no need for localStorage
       return response;
     } catch (error: any) {
       // Clear tokens on refresh failure
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Token refresh failed');
     }
   }
@@ -179,13 +173,12 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.error = null;
       })
-      .addCase(getCurrentUser.rejected, (state, action) => {
+      .addCase(getCurrentUser.rejected, (state) => {
         state.isLoading = false;
         state.isCheckingAuth = false;
-        state.error = action.payload as string;
+        state.error = null;
         state.isAuthenticated = false;
         state.user = null;
-        state.token = null;
         // refreshToken cleanup is handled in the thunk
       })
       // Logout

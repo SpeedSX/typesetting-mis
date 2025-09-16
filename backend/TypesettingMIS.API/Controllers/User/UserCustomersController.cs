@@ -92,12 +92,15 @@ public class UserCustomersController(
             return BadRequest(new { message = "Tenant context is required for this operation" });
         }
 
+        var name = createCustomerDto.Name.Trim();
+        var email = createCustomerDto.Email?.Trim().ToLowerInvariant();
+
         var customer = new TypesettingMIS.Core.Entities.Customer
         {
-            Name = createCustomerDto.Name,
-            Email = createCustomerDto.Email,
-            Phone = createCustomerDto.Phone,
-            TaxId = createCustomerDto.TaxId,
+            Name = name,
+            Email = email,
+            Phone = createCustomerDto.Phone?.Trim(),
+            TaxId = createCustomerDto.TaxId?.Trim(),
             CompanyId = CurrentTenantId!.Value
         };
 
@@ -143,12 +146,12 @@ public class UserCustomersController(
         
         if (updateCustomerDto.Email != null)
             customer.Email = updateCustomerDto.Email;
-        
+
         if (updateCustomerDto.Phone != null)
-            customer.Phone = updateCustomerDto.Phone;
-        
+            customer.Phone = updateCustomerDto.Phone.Trim();
+
         if (updateCustomerDto.TaxId != null)
-            customer.TaxId = updateCustomerDto.TaxId;
+            customer.TaxId = updateCustomerDto.TaxId.Trim();
 
         customer.UpdatedAt = DateTime.UtcNow;
 

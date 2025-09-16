@@ -19,6 +19,7 @@ public class AdminUsersController(ApplicationDbContext context, ITenantContext t
     public async Task<ActionResult<object>> GetUsers(CancellationToken cancellationToken)
     {
         var users = await context.Users
+            .AsNoTracking()
             .Include(u => u.Company)
             .Include(u => u.Role)
             .Select(u => new
@@ -29,8 +30,8 @@ public class AdminUsersController(ApplicationDbContext context, ITenantContext t
                 u.LastName,
                 u.IsActive,
                 u.LastLogin,
-                CompanyName = u.Company.Name,
-                RoleName = u.Role.Name
+                CompanyName = u.Company != null ? u.Company.Name : string.Empty,
+                RoleName = u.Role != null ? u.Role.Name : string.Empty
             })
             .ToListAsync(cancellationToken);
 
@@ -46,8 +47,9 @@ public class AdminUsersController(ApplicationDbContext context, ITenantContext t
         var totalUsers = await context.Users.CountAsync(cancellationToken);
         var activeUsers = await context.Users.CountAsync(u => u.IsActive, cancellationToken);
         var usersByCompany = await context.Users
+            .AsNoTracking()
             .Include(u => u.Company)
-            .GroupBy(u => u.Company.Name)
+            .GroupBy(u => u.Company != null ? u.Company.Name : "(none)")
             .Select(g => new { CompanyName = g.Key, Count = g.Count() })
             .ToListAsync(cancellationToken);
 

@@ -61,7 +61,7 @@ const CustomersPage: React.FC = () => {
       });
     } else {
       setEditingCustomer(null);
-      setFormData(initialForm);
+      setFormData({ ...initialForm });
     }
     setOpen(true);
   };
@@ -104,7 +104,7 @@ const CustomersPage: React.FC = () => {
   // inside component
   const resetForm = React.useCallback(() => {
     setEditingCustomer(null);
-    setFormData(initialForm);
+    setFormData({ ...initialForm });
   }, []);
 
   return (
