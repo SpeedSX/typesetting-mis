@@ -2,8 +2,8 @@ export interface UserStats {
     totalUsers: number;
     activeUsers: number;
     inactiveUsers: number;
-    usersByCompany: Array<{
+    usersByCompany: {
       companyName: string;
       count: number;
-    }>;
+    }[];
   }

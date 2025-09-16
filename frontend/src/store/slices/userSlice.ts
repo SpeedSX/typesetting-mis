@@ -16,7 +16,7 @@ interface UserStats {
   readonly totalUsers: number;
   readonly activeUsers: number;
   readonly inactiveUsers: number;
-  readonly usersByCompany: ReadonlyArray<Readonly<{ companyName: string; count: number }>>;
+  readonly usersByCompany: { companyName: string; count: number }[];
 }
 
 interface UserState {
