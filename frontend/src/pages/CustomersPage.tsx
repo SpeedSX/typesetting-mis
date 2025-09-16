@@ -93,16 +93,6 @@ const CustomersPage: React.FC = () => {
       dispatch(createCustomer(formData));
     }
     setOpen(false); // Close dialog immediately without resetting state
-    // Reset state after a short delay
-    setTimeout(() => {
-      setEditingCustomer(null);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        taxId: '',
-      });
-    }, 150);
   };
 
   const handleDelete = (id: string) => {
@@ -118,6 +108,12 @@ const CustomersPage: React.FC = () => {
       [name]: value,
     }));
   };
+
+  // inside component
+  const resetForm = React.useCallback(() => {
+    setEditingCustomer(null);
+    setFormData({ name: '', email: '', phone: '', taxId: '' });
+  }, []);
 
   return (
     <Container maxWidth="lg">
@@ -206,7 +202,16 @@ const CustomersPage: React.FC = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <Dialog 
+        open={open} 
+        onClose={handleClose}
+        maxWidth="sm"
+        fullWidth
+        slotProps={{
+          transition: {
+          onExited: resetForm
+        }
+      }}>
         <DialogTitle>
           {editingCustomer ? 'Edit Customer' : 'Add Customer'}
         </DialogTitle>

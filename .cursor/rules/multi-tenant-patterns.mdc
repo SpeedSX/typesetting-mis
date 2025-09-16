@@ -16,7 +16,6 @@ globs: backend/**/*.cs,frontend/**/*.ts,frontend/**/*.tsx
 ## Frontend Tenant Awareness
 - Check user's company context from auth state
 - Hide/show features based on user role and company
-- Use company-specific API endpoints where applicable
 - Handle tenant switching gracefully
 
 ## Database Design

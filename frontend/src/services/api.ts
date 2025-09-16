@@ -33,11 +33,13 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
           // Token expired or invalid, redirect to login
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }        
         }
         return Promise.reject(error);
       }
@@ -55,8 +57,8 @@ class ApiService {
     return response.data;
   }
 
-  async getCurrentUser(): Promise<any> {
-    const response: AxiosResponse<any> = await this.api.get('/auth/me');
+  async getCurrentUser(): Promise<User> {
+    const response: AxiosResponse<User> = await this.api.get('/auth/me');
     return response.data;
   }
 

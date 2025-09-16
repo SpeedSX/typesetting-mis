@@ -7,20 +7,13 @@ using TypesettingMIS.Infrastructure.Data;
 
 namespace TypesettingMIS.Infrastructure.Services;
 
-public class InvitationService : IInvitationService
+public class InvitationService(ApplicationDbContext context) : IInvitationService
 {
-    private readonly ApplicationDbContext _context;
-
-    public InvitationService(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
-    public async Task<InvitationDto?> CreateInvitationAsync(CreateInvitationDto createInvitationDto)
+    public async Task<InvitationDto?> CreateInvitationAsync(CreateInvitationDto createInvitationDto, CancellationToken cancellationToken)
     {
         // Verify company exists
-        var company = await _context.Companies
-            .FirstOrDefaultAsync(c => c.Id == createInvitationDto.CompanyId && !c.IsDeleted);
+        var company = await context.Companies
+            .FirstOrDefaultAsync(c => c.Id == createInvitationDto.CompanyId && !c.IsDeleted, cancellationToken);
 
         if (company == null)
         {
@@ -39,8 +32,8 @@ public class InvitationService : IInvitationService
             IsUsed = false
         };
 
-        _context.Invitations.Add(invitation);
-        await _context.SaveChangesAsync();
+        context.Invitations.Add(invitation);
+        await context.SaveChangesAsync(cancellationToken);
 
         return new InvitationDto
         {
@@ -53,11 +46,11 @@ public class InvitationService : IInvitationService
         };
     }
 
-    public async Task<InvitationDto?> ValidateInvitationAsync(string token)
+    public async Task<InvitationDto?> ValidateInvitationAsync(string token, CancellationToken cancellationToken)
     {
-        var invitation = await _context.Invitations
+        var invitation = await context.Invitations
             .Include(i => i.Company)
-            .FirstOrDefaultAsync(i => i.Token == token);
+            .FirstOrDefaultAsync(i => i.Token == token, cancellationToken);
 
         if (invitation == null || 
             invitation.IsUsed || 
@@ -80,10 +73,10 @@ public class InvitationService : IInvitationService
         };
     }
 
-    public async Task<bool> MarkInvitationAsUsedAsync(string token, Guid userId, string email)
+    public async Task<bool> MarkInvitationAsUsedAsync(string token, Guid userId, string email, CancellationToken cancellationToken)
     {
-        var invitation = await _context.Invitations
-            .FirstOrDefaultAsync(i => i.Token == token);
+        var invitation = await context.Invitations
+            .FirstOrDefaultAsync(i => i.Token == token, cancellationToken);
 
         if (invitation == null || invitation.IsUsed)
         {
@@ -95,7 +88,7 @@ public class InvitationService : IInvitationService
         invitation.UsedByUserId = userId;
         invitation.UsedByEmail = email;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
         return true;
     }
 

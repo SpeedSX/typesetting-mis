@@ -121,6 +121,9 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = true;
     },
+    setIsCheckingAuth: (state, action: PayloadAction<boolean>) => {
+      state.isCheckingAuth = action.payload;
+    },    
   },
   extraReducers: (builder) => {
     builder
@@ -217,5 +220,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, setUser } = authSlice.actions;
+export const { clearError, setUser, setIsCheckingAuth } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,9 +1,11 @@
+export type ISODateString = string; // ISO-8601 timestamp from backend (UTC)
+
 export interface Invitation {
   id: string;
   token: string;
   companyId: string;
   companyName: string;
-  expiresAt: string;
+  expiresAt: ISODateString;
   isUsed: boolean;
   usedAt: string | null;
   usedByUserId: string | null;
