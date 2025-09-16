@@ -7,7 +7,7 @@ namespace TypesettingMIS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IAuthService authService, IWebHostEnvironment environment, IConfiguration configuration, IJwtConfigurationService jwtConfiguration)
+public class AuthController(IAuthService authService, IWebHostEnvironment environment, IJwtConfigurationService jwtConfiguration)
     : ControllerBase
 {
     /// <summary>
@@ -149,7 +149,7 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
 
     private CookieOptions BuildRefreshCookieOptions(bool forDeletion = false)
     {
-        var sameSiteStr = configuration["Jwt:RefreshCookieSameSite"] ?? "Lax"; // Lax|Strict|None
+        var sameSiteStr = jwtConfiguration.GetRefreshCookieSameSite(); // Lax|Strict|None
         var sameSite = SameSiteMode.Lax;
         if (Enum.TryParse<SameSiteMode>(sameSiteStr, true, out var parsed)) sameSite = parsed;
         var cookieOptions = new CookieOptions

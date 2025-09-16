@@ -7,4 +7,5 @@ public interface IJwtConfigurationService
     int GetExpiryMinutes();
     int GetRefreshTokenExpiryDays();
     byte[] GetSigningKeyBytes();
+    string GetRefreshCookieSameSite();
 }

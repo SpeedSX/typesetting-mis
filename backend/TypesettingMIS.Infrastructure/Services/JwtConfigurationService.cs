@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -60,5 +61,10 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
         if (string.IsNullOrEmpty(jwtKey))
             throw new InvalidOperationException("JWT key is not configured");
         return Encoding.UTF8.GetBytes(jwtKey);
+    }
+
+    public string GetRefreshCookieSameSite()
+    {
+        return configuration["Jwt:RefreshCookieSameSite"] ?? "Lax"; // Lax|Strict|None
     }
 }
