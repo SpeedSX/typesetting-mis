@@ -8,4 +8,5 @@ public interface IJwtConfigurationService
     int GetRefreshTokenExpiryDays();
     byte[] GetSigningKeyBytes();
     string GetRefreshCookieSameSite();
+    byte[] GetRefreshTokenSecretBytes();
 }

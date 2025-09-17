@@ -5,12 +5,13 @@ alwaysApply: true
 # Development Workflow
 
 ## Getting Started
-1. **Backend**: Run from [backend/](mdc:backend/) directory with `dotnet run --project TypesettingMIS.API`
-2. **Frontend**: Run from [frontend/](mdc:frontend/) directory with `npm run dev`
-3. Use PowerShell syntax in Terminal
+- **Backend**: Run from [backend/](mdc:backend/) directory with `dotnet run --project TypesettingMIS.API`
+- **Frontend**: Run from [frontend/](mdc:frontend/) directory with `npm run dev`
+- Use PowerShell syntax in Terminal
 
 ## Code Organization
 - **Feature-Based**: Group related files by feature (auth, companies, users)
 - **Layer Separation**: Keep API, Core, Infrastructure, and Application layers separate
 - **Type Safety**: Use TypeScript interfaces for all data structures
-- **Consistent Naming**: Follow C# conventions for backend, camelCase for frontend
+- **Consistent Naming**: Follow C# conventions for backend, camelCase for frontend. 
+- Use C# 12 at least, prefer C# 13.

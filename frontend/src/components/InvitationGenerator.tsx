@@ -14,6 +14,7 @@ import {
 import { ContentCopy, Share, Link as LinkIcon } from '@mui/icons-material';
 import { apiService } from '../services/api';
 import type { Invitation } from '../types/invitation';
+import { isAxiosError } from 'axios';
 
 interface InvitationGeneratorProps {
   companyId: string;
@@ -38,7 +39,7 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
       });
       setInvitation(newInvitation);
     } catch (err: unknown) {
-      const msg = (await import('axios')).default.isAxiosError(err)
+      const msg = isAxiosError(err)
         ? err.response?.data?.message
         : undefined;  
       setError(msg || 'Failed to generate invitation');

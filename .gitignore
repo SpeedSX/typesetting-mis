@@ -71,7 +71,6 @@ appsettings.*.json
 secrets.json
 
 # Entity Framework
-Migrations/
 *.edmx.diagram
 *.edmx.sql
 
@@ -209,7 +208,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# Note: frontend/public/ should be tracked for Vite projects
 
 # Storybook build outputs
 .out

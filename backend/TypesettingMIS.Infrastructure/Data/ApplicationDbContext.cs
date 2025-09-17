@@ -314,10 +314,9 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         modelBuilder.Entity<RefreshToken>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Token).IsUnique();
-            entity.Property(e => e.Token).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.TokenHash).IsRequired().HasMaxLength(500);
             entity.Property(e => e.RevokedByIp).HasMaxLength(50);
-            entity.Property(e => e.ReplacedByToken).HasMaxLength(500);
+            entity.Property(e => e.ReplacedByTokenHash).HasMaxLength(500);
             entity.Property(e => e.ReasonRevoked).HasMaxLength(100);
             
             entity.HasOne(e => e.User)

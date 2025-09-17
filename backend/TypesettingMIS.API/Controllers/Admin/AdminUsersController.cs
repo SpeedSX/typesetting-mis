@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TypesettingMIS.Core.DTOs.Admin;
 using TypesettingMIS.Core.Services;
 using TypesettingMIS.Infrastructure.Data;
 
@@ -16,20 +17,20 @@ public class AdminUsersController(ApplicationDbContext context, ITenantContext t
     /// Get all users across all companies (Admin only)
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<object>> GetUsers(CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<AdminUserListItemDto>>> GetUsers(CancellationToken cancellationToken)
     {
         var users = await context.Users
             .AsNoTracking()
             .Include(u => u.Company)
             .Include(u => u.Role)
-            .Select(u => new
+            .Select(u => new AdminUserListItemDto
             {
-                u.Id,
-                u.Email,
-                u.FirstName,
-                u.LastName,
-                u.IsActive,
-                u.LastLogin,
+                Id = u.Id,
+                Email = u.Email,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                IsActive = u.IsActive,
+                LastLogin = u.LastLogin,
                 CompanyName = u.Company != null ? u.Company.Name : string.Empty,
                 RoleName = u.Role != null ? u.Role.Name : string.Empty
             })
@@ -48,8 +49,13 @@ public class AdminUsersController(ApplicationDbContext context, ITenantContext t
         var activeUsers = await context.Users.CountAsync(u => u.IsActive, cancellationToken);
         var usersByCompany = await context.Users
             .AsNoTracking()
-            .GroupBy(u => new { u.CompanyId, CompanyName = u.Company != null ? u.Company.Name : "(none)" })
-            .Select(g => new { CompanyName = g.Key.CompanyName, Count = g.Count() })
+            .GroupJoin(
+                context.Companies.AsNoTracking(),
+                u => u.CompanyId,
+                c => c.Id,
+                (u, cs) => new { u, companyName = cs.Select(c => c.Name).FirstOrDefault() ?? "(none)" })
+            .GroupBy(x => x.companyName)
+            .Select(g => new { CompanyName = g.Key, Count = g.Count() })
             .OrderBy(x => x.CompanyName)
             .ToListAsync(cancellationToken);
 

@@ -8,4 +8,5 @@ public interface IJwtService
     string GenerateRefreshToken();
     bool ValidateToken(string token);
     string? GetUserIdFromToken(string token);
+    DateTime GetExpiryUtc(string token);
 }

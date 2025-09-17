@@ -74,7 +74,7 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
     public async Task<ActionResult<AuthResponseDto>> RefreshToken(CancellationToken cancellationToken)
     {
         // Read refresh token from httpOnly cookie
-        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken) ||
+        if (!Request.Cookies.TryGetValue(RefreshCookieName, out var refreshToken) ||
             string.IsNullOrEmpty(refreshToken))
         {
             return Unauthorized(new { message = "No refresh token found in cookie" });
@@ -107,7 +107,7 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
         // Read refresh token from httpOnly cookie
-        if (Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+        if (Request.Cookies.TryGetValue(RefreshCookieName, out var refreshToken))
         {
             await authService.LogoutAsync(refreshToken, cancellationToken);
         }
@@ -115,7 +115,7 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         // Clear the refresh token cookie
         Response.Cookies.Delete(RefreshCookieName, BuildRefreshCookieOptions(forDeletion: true));
 
-        return Ok(new { message = "Logged out successfully" });
+        return NoContent();
     }
 
 
@@ -181,7 +181,9 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
 
         if (!forDeletion)
         {
-            cookieOptions.MaxAge = TimeSpan.FromDays(jwtConfiguration.GetRefreshTokenExpiryDays());
+            var days = jwtConfiguration.GetRefreshTokenExpiryDays();
+            cookieOptions.MaxAge = TimeSpan.FromDays(days);
+            cookieOptions.Expires = DateTimeOffset.UtcNow.AddDays(days);
         }
 
         return cookieOptions;
@@ -192,5 +194,6 @@ public class AuthController(IAuthService authService, IWebHostEnvironment enviro
         Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
         Response.Headers["Pragma"] = "no-cache";
         Response.Headers["Expires"] = "0";
+        Response.Headers["Vary"] = "Authorization";
     }
 }

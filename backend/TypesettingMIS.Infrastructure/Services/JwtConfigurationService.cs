@@ -67,4 +67,12 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
     {
         return configuration["Jwt:RefreshCookieSameSite"] ?? "Lax"; // Lax|Strict|None
     }
+
+    public byte[] GetRefreshTokenSecretBytes()
+    {
+        var refreshTokenSecret = configuration["Jwt:RefreshTokenSecret"];
+        if (string.IsNullOrEmpty(refreshTokenSecret))
+            throw new InvalidOperationException("Refresh token secret is not configured");
+        return Encoding.UTF8.GetBytes(refreshTokenSecret);
+    }
 }

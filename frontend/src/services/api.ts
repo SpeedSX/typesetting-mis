@@ -32,18 +32,28 @@ class ApiService {
     // Add response interceptor for error handling
     this.api.interceptors.response.use(
       (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          // Token expired or invalid, redirect to login
-          localStorage.removeItem('authToken');
-          if (typeof window !== 'undefined') {
-            const p = window.location.pathname;
-            const isAuthPage = p === '/login' || p === '/register';
-            if (!isAuthPage) window.location.href = '/login';
-          }       
+      async (error) => {
+          const original = error.config as any;
+          if (error.response?.status === 401 && !original?._retry && typeof window !== 'undefined') {
+            original._retry = true;
+            try {
+              const refreshResp: AxiosResponse<AuthResponse> = await this.api.post('/auth/refresh');
+              const newToken = refreshResp.data.token;
+              if (newToken) {
+                localStorage.setItem('authToken', newToken);
+                original.headers = original.headers ?? {};
+                original.headers.Authorization = `Bearer ${newToken}`;
+              }
+              return this.api.request(original);
+            } catch {
+              localStorage.removeItem('authToken');
+              const p = window.location.pathname;
+              const isAuthPage = p === '/login' || p === '/register';
+              if (!isAuthPage) window.location.href = '/login';
+            }
+          }
+          return Promise.reject(error);
         }
-        return Promise.reject(error);
-      }
     );
   }
 

@@ -54,7 +54,6 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
     {
         try
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -66,7 +65,7 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
                 IssuerSigningKey = new SymmetricSecurityKey(jwtConfig.GetSigningKeyBytes()),
                 ClockSkew = TimeSpan.Zero // Consistent with manual validation
             };
-            tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+            new JwtSecurityTokenHandler().ValidateToken(token, validationParameters, out SecurityToken _);
             return true;
         }
         catch
@@ -79,13 +78,17 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
     {
         try
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwt = tokenHandler.ReadJwtToken(token);
+            var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
             return jwt.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
         catch
         {
             return null;
         }
+    }
+
+    public DateTime GetExpiryUtc(string token)
+    {
+        return new JwtSecurityTokenHandler().ReadJwtToken(token).ValidTo;
     }
 }

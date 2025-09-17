@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 using TypesettingMIS.Core.DTOs.Auth;
 using TypesettingMIS.Core.Entities;
 using TypesettingMIS.Core.Services;
@@ -17,6 +19,17 @@ public class AuthService(
     IJwtConfigurationService jwtConfigurationService)
     : IAuthService
 {
+    /// <summary>
+    /// Computes HMAC-SHA256 hash of the refresh token using the configured secret
+    /// </summary>
+    private string ComputeRefreshTokenHash(string token)
+    {
+        var secret = jwtConfigurationService.GetRefreshTokenSecretBytes();
+        using var hmac = new HMACSHA256(secret);
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken)
     {
         var user = await context.Users
@@ -35,10 +48,10 @@ public class AuthService(
         var token = jwtService.GenerateToken(user);
         var refreshToken = jwtService.GenerateRefreshToken();
 
-        // Store refresh token in database
+        // Store refresh token hash in database
         var refreshTokenEntity = new RefreshToken
         {
-            Token = refreshToken,
+            TokenHash = ComputeRefreshTokenHash(refreshToken),
             UserId = user.Id,
             ExpiresAt = DateTime.UtcNow.AddDays(jwtConfigurationService.GetRefreshTokenExpiryDays()),
             IsRevoked = false,
@@ -51,7 +64,7 @@ public class AuthService(
         {
             Token = token,
             RefreshToken = refreshToken,
-            ExpiresAt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(token).ValidTo,
+            ExpiresAt = jwtService.GetExpiryUtc(token),
             User = new UserDto
             {
                 Id = user.Id,
@@ -62,8 +75,7 @@ public class AuthService(
                 CompanyName = user.Company?.Name ?? "",
                 RoleId = user.RoleId,
                 RoleName = user.Role?.Name ?? "",
-                IsActive = user.IsActive,
-                CreatedAt = DateTime.UtcNow
+                IsActive = user.IsActive
             }
         };
     }
@@ -131,10 +143,10 @@ public class AuthService(
         var token = jwtService.GenerateToken(user);
         var refreshToken = jwtService.GenerateRefreshToken();
 
-        // Store refresh token in database
+        // Store refresh token hash in database
         var refreshTokenEntity = new RefreshToken
         {
-            Token = refreshToken,
+            TokenHash = ComputeRefreshTokenHash(refreshToken),
             UserId = user.Id,
             ExpiresAt = DateTime.UtcNow.AddDays(jwtConfigurationService.GetRefreshTokenExpiryDays()),
             IsRevoked = false
@@ -149,7 +161,7 @@ public class AuthService(
         {
             Token = token,
             RefreshToken = refreshToken,
-            ExpiresAt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(token).ValidTo,
+            ExpiresAt = jwtService.GetExpiryUtc(token),
             User = new UserDto
             {
                 Id = user.Id,
@@ -160,21 +172,23 @@ public class AuthService(
                 CompanyName = user.Company?.Name ?? "",
                 RoleId = user.RoleId,
                 RoleName = user.Role?.Name ?? "",
-                IsActive = user.IsActive,
-                CreatedAt = DateTime.UtcNow
+                IsActive = user.IsActive
             }
         };
     }
 
     public async Task<AuthResponseDto?> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
     {
-        // Find the refresh token in database
+        // Compute hash of the incoming refresh token
+        var tokenHash = ComputeRefreshTokenHash(refreshToken);
+
+        // Find the refresh token hash in database
         var storedToken = await context.RefreshTokens
             .Include(rt => rt.User)
             .ThenInclude(u => u.Company)
             .Include(rt => rt.User)
             .ThenInclude(u => u.Role)
-            .FirstOrDefaultAsync(rt => rt.Token == refreshToken, cancellationToken);
+            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash, cancellationToken);
 
         if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow)
         {
@@ -196,12 +210,12 @@ public class AuthService(
         storedToken.IsRevoked = true;
         storedToken.RevokedAt = DateTime.UtcNow;
         storedToken.RevokedByIp = httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
-        storedToken.ReplacedByToken = newRefreshToken;
+        storedToken.ReplacedByTokenHash = ComputeRefreshTokenHash(newRefreshToken);
 
-        // Store new refresh token
+        // Store new refresh token hash
         var newRefreshTokenEntity = new RefreshToken
         {
-            Token = newRefreshToken,
+            TokenHash = ComputeRefreshTokenHash(newRefreshToken),
             UserId = user.Id,
             ExpiresAt = DateTime.UtcNow.AddDays(jwtConfigurationService.GetRefreshTokenExpiryDays()),
             IsRevoked = false
@@ -214,7 +228,7 @@ public class AuthService(
         {
             Token = newToken,
             RefreshToken = newRefreshToken,
-            ExpiresAt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(newToken).ValidTo,
+            ExpiresAt = jwtService.GetExpiryUtc(newToken),
             User = new UserDto
             {
                 Id = user.Id,
@@ -225,17 +239,19 @@ public class AuthService(
                 CompanyName = user.Company?.Name ?? "",
                 RoleId = user.RoleId,
                 RoleName = user.Role?.Name ?? "",
-                IsActive = user.IsActive,
-                CreatedAt = DateTime.UtcNow
+                IsActive = user.IsActive
             }
         };
     }
 
     public async Task<bool> LogoutAsync(string refreshToken, CancellationToken cancellationToken)
     {
+        // Compute hash of the incoming refresh token
+        var tokenHash = ComputeRefreshTokenHash(refreshToken);
+
         // Find and revoke the refresh token
         var storedToken = await context.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.Token == refreshToken, cancellationToken);
+            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash, cancellationToken);
 
         if (storedToken != null)
         {
