@@ -75,4 +75,9 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
             throw new InvalidOperationException("Refresh token secret is not configured");
         return Encoding.UTF8.GetBytes(refreshTokenSecret);
     }
+
+    public object GetTokenValidationParameters()
+    {
+        return GetTokenValidationParameters(configuration);
+    }
 }

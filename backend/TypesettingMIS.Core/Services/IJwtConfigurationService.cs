@@ -9,4 +9,5 @@ public interface IJwtConfigurationService
     byte[] GetSigningKeyBytes();
     string GetRefreshCookieSameSite();
     byte[] GetRefreshTokenSecretBytes();
+    object GetTokenValidationParameters(); // Return object to avoid framework dependency in Core
 }

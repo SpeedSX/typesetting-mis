@@ -57,20 +57,12 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
     {
         try
         {
-            var validationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                RequireSignedTokens = true,
-                RequireExpirationTime = true,
-                ValidIssuer = jwtConfig.GetIssuer(),
-                ValidAudience = jwtConfig.GetAudience(),
-                IssuerSigningKey = new SymmetricSecurityKey(jwtConfig.GetSigningKeyBytes()),
-                ClockSkew = TimeSpan.Zero,
-                ValidAlgorithms = [SecurityAlgorithms.HmacSha256]
-            };
+            var validationParameters = (TokenValidationParameters)jwtConfig.GetTokenValidationParameters();
+            // Add additional validation requirements specific to manual validation
+            validationParameters.RequireSignedTokens = true;
+            validationParameters.RequireExpirationTime = true;
+            validationParameters.ValidAlgorithms = [SecurityAlgorithms.HmacSha256];
+            
             new JwtSecurityTokenHandler().ValidateToken(token, validationParameters, out SecurityToken _);
             return true;
         }
