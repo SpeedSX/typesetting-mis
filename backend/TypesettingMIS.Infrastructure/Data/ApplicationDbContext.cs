@@ -356,12 +356,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(e => e.ReplacedByTokenHash).HasMaxLength(500);
             entity.Property(e => e.ReasonRevoked).HasMaxLength(100);
             
+            // Use PostgreSQL's xmin system column for concurrency control instead of bytea RowVersion
+            entity.Property<uint>("xmin")
+                .HasColumnType("xid")
+                .ValueGeneratedOnAddOrUpdate()
+                .IsConcurrencyToken();
+            
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-
+        
         // Configure Invitation
         modelBuilder.Entity<Invitation>(entity =>
         {

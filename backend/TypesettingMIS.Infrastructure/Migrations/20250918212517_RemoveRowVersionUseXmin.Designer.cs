@@ -12,8 +12,8 @@ using TypesettingMIS.Infrastructure.Data;
 namespace TypesettingMIS.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250918205222_AddRowVersionToRefreshToken")]
-    partial class AddRowVersionToRefreshToken
+    [Migration("20250918212517_RemoveRowVersionUseXmin")]
+    partial class RemoveRowVersionUseXmin
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

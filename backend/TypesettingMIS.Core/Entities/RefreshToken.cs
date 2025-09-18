@@ -12,7 +12,6 @@ public class RefreshToken : BaseEntity
     public string? RevokedByIp { get; set; }
     public string? ReplacedByTokenHash { get; set; }
     public string? ReasonRevoked { get; set; }
-    [Timestamp] public byte[] RowVersion { get; set; } = [];
 
     // Navigation property
     public User User { get; set; } = null!;

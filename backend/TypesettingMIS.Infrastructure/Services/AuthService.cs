@@ -38,12 +38,19 @@ public class AuthService(
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.NormalizedEmail == normalized, cancellationToken);
 
-        if (user is not { IsActive: true, PasswordHash: not null, Email: not null })
+        if (user is not { IsActive: true, PasswordHash: not null, Email: not null } ||
+            user.Company is { IsDeleted: true })
+        {
             return null;
+        }
 
         var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
-        if (result != PasswordVerificationResult.Success)
-            return null;
+        if (result == PasswordVerificationResult.Failed)
+                return null;
+        if (result == PasswordVerificationResult.SuccessRehashNeeded)
+        {
+            user.PasswordHash = passwordHasher.HashPassword(user, loginDto.Password);
+        }
 
         user.LastLogin = DateTime.UtcNow;
         var token = jwtService.GenerateToken(user);
