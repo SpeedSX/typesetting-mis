@@ -26,7 +26,7 @@ public class AdminUsersController(ApplicationDbContext context, ITenantContext t
             .Select(u => new AdminUserListItemDto
             {
                 Id = u.Id,
-                Email = u.Email,
+                Email = u.Email ?? string.Empty,
                 FirstName = u.FirstName,
                 LastName = u.LastName,
                 IsActive = u.IsActive,

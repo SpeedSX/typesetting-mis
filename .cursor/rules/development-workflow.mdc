@@ -4,10 +4,9 @@ alwaysApply: true
 
 # Development Workflow
 
-## Getting Started
 - **Backend**: Run from [backend/](mdc:backend/) directory with `dotnet run --project TypesettingMIS.API`
 - **Frontend**: Run from [frontend/](mdc:frontend/) directory with `npm run dev`
-- Use PowerShell syntax in Terminal
+- Use PowerShell syntax for Terminal actions (for example, do not use '&&' to chain commands). In documentation, specify both Bash and PS if they differ.
 
 ## Code Organization
 - **Feature-Based**: Group related files by feature (auth, companies, users)

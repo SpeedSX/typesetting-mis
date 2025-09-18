@@ -20,10 +20,7 @@ globs: frontend/**/*.ts,frontend/**/*.tsx
 - Use controlled components with state
 - Implement validation with error states
 - Show loading states during async operations
-- Clear errors on form close (see [AddCompanyForm.tsx](mdc:frontend/src/components/AddCompanyForm.tsx))
+- Clear errors on form close
 
 ## Authentication Flow
 - Use [ProtectedRoute](mdc:frontend/src/components/ProtectedRoute.tsx) for route protection
-
-## UI Patterns
-- Implement loading states with [CircularProgress](mdc:frontend/src/components/ProtectedRoute.tsx)

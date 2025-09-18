@@ -48,9 +48,10 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
     }
   };
 
-  const baseUrl =
+  const rawBaseUrl =
     import.meta.env.VITE_PUBLIC_BASE_URL ??
     (typeof window !== 'undefined' ? window.location.origin : '');
+  const baseUrl = rawBaseUrl?.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl      
 
   const invitationUrl = invitation 
     ? `${baseUrl}/register?invite=${encodeURIComponent(invitation.token)}`

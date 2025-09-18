@@ -33,27 +33,37 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       async (error) => {
-          const original = error.config as any;
-          if (error.response?.status === 401 && !original?._retry && typeof window !== 'undefined') {
-            original._retry = true;
-            try {
-              const refreshResp: AxiosResponse<AuthResponse> = await this.api.post('/auth/refresh');
-              const newToken = refreshResp.data.token;
-              if (newToken) {
-                localStorage.setItem('authToken', newToken);
-                original.headers = original.headers ?? {};
-                original.headers.Authorization = `Bearer ${newToken}`;
-              }
-              return this.api.request(original);
-            } catch {
-              localStorage.removeItem('authToken');
-              const p = window.location.pathname;
-              const isAuthPage = p === '/login' || p === '/register';
-              if (!isAuthPage) window.location.href = '/login';
+        const original = (error.config || {}) as any;
+        const url = (original.url || '') as string;
+        const isBrowser = typeof window !== 'undefined';
+        const isAuthRefresh = url.includes('/auth/refresh');
+        
+        if (error.response?.status === 401 && !original._retry && isBrowser && !isAuthRefresh) {
+          original._retry = true;
+          try {
+            // Use bare axios to avoid interceptor recursion
+            const refreshResp: AxiosResponse<AuthResponse> = await axios.post(
+              `${this.api.defaults.baseURL}/auth/refresh`,
+              null,
+              { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
+            );
+            const newToken = refreshResp.data.token;
+            if (newToken) {
+              localStorage.setItem('authToken', newToken);
+              this.api.defaults.headers.Authorization = `Bearer ${newToken}`;
+              original.headers = original.headers ?? {};
+              original.headers.Authorization = `Bearer ${newToken}`;
             }
+            return this.api.request(original);
+          } catch {
+            localStorage.removeItem('authToken');
+            const p = window.location.pathname;
+            const isAuthPage = p === '/login' || p === '/register';
+            if (!isAuthPage) window.location.href = '/login';
           }
-          return Promise.reject(error);
         }
+        return Promise.reject(error);
+      }
     );
   }
 

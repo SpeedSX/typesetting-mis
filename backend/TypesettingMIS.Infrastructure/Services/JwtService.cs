@@ -16,8 +16,11 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
         var claimsList = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email ?? ""),
             new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
+            new(ClaimTypes.GivenName, user.FirstName),
+            new(ClaimTypes.Surname, user.LastName),
             new("company_id", user.CompanyId.ToString()),
             new("role_id", user.RoleId.ToString()),
             new("role_name", user.Role?.Name ?? ""),
@@ -60,10 +63,13 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
+                RequireSignedTokens = true,
+                RequireExpirationTime = true,
                 ValidIssuer = jwtConfig.GetIssuer(),
                 ValidAudience = jwtConfig.GetAudience(),
                 IssuerSigningKey = new SymmetricSecurityKey(jwtConfig.GetSigningKeyBytes()),
-                ClockSkew = TimeSpan.Zero // Consistent with manual validation
+                ClockSkew = TimeSpan.Zero,
+                ValidAlgorithms = [SecurityAlgorithms.HmacSha256]
             };
             new JwtSecurityTokenHandler().ValidateToken(token, validationParameters, out SecurityToken _);
             return true;
@@ -78,6 +84,8 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
     {
         try
         {
+            if (!ValidateToken(token))
+                return null;
             var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
             return jwt.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }

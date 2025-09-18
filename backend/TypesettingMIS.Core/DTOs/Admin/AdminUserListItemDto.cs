@@ -10,5 +10,5 @@ public class AdminUserListItemDto
     public bool IsActive { get; set; }
     public DateTime? LastLogin { get; set; }
     public string CompanyName { get; set; } = string.Empty;
-    public string RoleName { get; set; } = string.Empty;
+    public string? RoleName { get; set; } = string.Empty;
 }

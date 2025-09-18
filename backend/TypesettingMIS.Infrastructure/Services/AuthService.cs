@@ -32,10 +32,11 @@ public class AuthService(
 
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken)
     {
+        var loginEmail = loginDto.Email.Trim().ToLowerInvariant();
         var user = await context.Users
             .Include(u => u.Company)
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Email == loginDto.Email.ToLower(), cancellationToken);
+            .FirstOrDefaultAsync(u => u.Email == loginEmail, cancellationToken);
 
         if (user is not { IsActive: true, PasswordHash: not null, Email: not null })
             return null;
@@ -85,7 +86,7 @@ public class AuthService(
         // Check if user already exists
         var email = registerDto.Email.Trim().ToLowerInvariant();
         var existingUser = await context.Users
-            .FirstOrDefaultAsync(u => u.Email.ToLower() == email, cancellationToken);
+            .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == email, cancellationToken);
 
         if (existingUser != null)
             return null;
@@ -155,7 +156,7 @@ public class AuthService(
         await context.SaveChangesAsync(cancellationToken);
 
         // Mark invitation as used
-        await invitationService.MarkInvitationAsUsedAsync(registerDto.InvitationToken, user.Id, user.Email, cancellationToken);
+        await invitationService.MarkInvitationAsUsedAsync(registerDto.InvitationToken, user.Id, user.Email!, cancellationToken);
 
         return new AuthResponseDto
         {
@@ -165,7 +166,7 @@ public class AuthService(
             User = new UserDto
             {
                 Id = user.Id,
-                Email = user.Email,
+                Email = user.Email!,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 CompanyId = user.CompanyId,

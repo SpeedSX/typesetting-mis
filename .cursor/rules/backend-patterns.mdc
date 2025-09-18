@@ -4,11 +4,6 @@ globs: backend/**/*.cs
 
 # Backend Development Patterns
 
-## Controller Organization
-- **Admin Controllers**: [backend/TypesettingMIS.API/Controllers/Admin/](mdc:backend/TypesettingMIS.API/Controllers/Admin/) - Admin-only endpoints with `[Authorize(Roles = "Admin")]`
-- **Auth Controller**: [backend/TypesettingMIS.API/Controllers/AuthController.cs](mdc:backend/TypesettingMIS.API/Controllers/AuthController.cs) - Authentication endpoints
-- **Base Controller**: [backend/TypesettingMIS.API/Controllers/BaseController.cs](mdc:backend/TypesettingMIS.API/Controllers/BaseController.cs) - Common functionality for tenant context
-
 ## Entity Patterns
 - All entities inherit from [BaseEntity](mdc:backend/TypesettingMIS.Core/Entities/BaseEntity.cs)
 - Use `Guid` for primary keys
