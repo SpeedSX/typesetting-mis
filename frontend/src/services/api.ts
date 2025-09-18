@@ -90,9 +90,12 @@ class ApiService {
   }
 
   async refreshToken(): Promise<AuthResponse> {
-    // Refresh token will be read from httpOnly cookie on the backend
-    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/refresh');
-    return response.data;
+    const resp = await axios.post<AuthResponse>(
+      `${this.api.defaults.baseURL}/auth/refresh`,
+      null,
+      { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
+    );
+    return resp.data;
   }
 
   // Admin User endpoints

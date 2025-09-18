@@ -27,6 +27,36 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Inventory> Inventory { get; set; }
     public DbSet<PricingRule> PricingRules { get; set; }
 
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        
+        foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+        {
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = now;
+            }
+        }
+        
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public override int SaveChanges()
+    {
+        var now = DateTime.UtcNow;
+        
+        foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+        {
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = now;
+            }
+        }
+        
+        return base.SaveChanges();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -45,15 +75,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         {
             entity.HasKey(e => e.Id);
             
-            // Create case-insensitive unique index using PostgreSQL expression
-            entity.HasIndex(e => e.Domain)
-                .IsUnique()
-                .HasDatabaseName("IX_Companies_Domain_Unique")
-                .HasMethod("btree")
-                .HasAnnotation("Npgsql:IndexExpression", "UPPER(\"Domain\")");
+            // Enable citext extension for case-insensitive text
+            modelBuilder.HasPostgresExtension("citext");
             
             entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
-            entity.Property(e => e.Domain).IsRequired().HasMaxLength(255);
+            
+            // Use citext for case-insensitive domain comparison
+            entity.Property(e => e.Domain)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnType("citext");
+            
+            entity.HasIndex(e => e.Domain)
+                .IsUnique()
+                .HasDatabaseName("IX_Companies_Domain_Unique");
+            
             entity.Property(e => e.SubscriptionPlan).HasMaxLength(50).HasDefaultValue("basic");
         });
 
@@ -78,6 +114,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // Configure Role
         modelBuilder.Entity<Role>(entity =>
         {
+            // Remove the default unique constraint on NormalizedName to allow tenant-scoped roles
+            entity.HasIndex(e => e.NormalizedName)
+                .IsUnique(false)
+                .HasDatabaseName("RoleNameIndex");
+            
+            // Keep the tenant-scoped unique constraint
             entity.HasIndex(e => new { e.CompanyId, e.NormalizedName }).IsUnique();
             
             entity.HasOne(e => e.Company)

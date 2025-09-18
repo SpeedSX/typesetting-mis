@@ -21,8 +21,6 @@ public class AdminUsersController(ApplicationDbContext context, ITenantContext t
     {
         var users = await context.Users
             .AsNoTracking()
-            .Include(u => u.Company)
-            .Include(u => u.Role)
             .Select(u => new AdminUserListItemDto
             {
                 Id = u.Id,
@@ -55,11 +53,11 @@ public class AdminUsersController(ApplicationDbContext context, ITenantContext t
                 c => c.Id,
                 (u, cs) => new { u, companyName = cs.Select(c => c.Name).FirstOrDefault() ?? "(none)" })
             .GroupBy(x => x.companyName)
-            .Select(g => new { CompanyName = g.Key, Count = g.Count() })
+            .Select(g => new UserCountByCompanyDto { CompanyName = g.Key, Count = g.Count() })
             .OrderBy(x => x.CompanyName)
             .ToListAsync(cancellationToken);
 
-        return Ok(new
+        return Ok(new UserStatsDto
         {
             TotalUsers = totalUsers,
             ActiveUsers = activeUsers,

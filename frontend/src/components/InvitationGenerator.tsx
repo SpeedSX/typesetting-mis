@@ -22,7 +22,8 @@ interface InvitationGeneratorProps {
 }
 
 const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, companyName }) => {
-  const [copied, setCopied] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [copiedText, setCopiedText] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
   const [invitation, setInvitation] = useState<Invitation | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -64,8 +65,8 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(invitationUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2000);
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
@@ -74,8 +75,8 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
   const handleCopyFullText = async () => {
     try {
       await navigator.clipboard.writeText(fullInvitationText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedText(true);
+      setTimeout(() => setCopiedText(false), 2000);
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
@@ -168,9 +169,9 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
           variant="contained"
           startIcon={<ContentCopy />}
           onClick={handleCopyFullText}
-          disabled={copied}
+          disabled={copiedText}
         >
-          {copied ? 'Copied!' : 'Copy Full Text'}
+          {copiedText ? 'Copied!' : 'Copy Full Text'}
         </Button>
         
         <Button
@@ -182,9 +183,9 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
         </Button>
       </Box>
 
-      {copied && (
+      {(copiedUrl || copiedText) && (
         <Alert severity="success" sx={{ mt: 2 }}>
-          Invitation copied to clipboard!
+          {copiedUrl ? 'URL copied to clipboard!' : 'Invitation text copied to clipboard!'}
         </Alert>
       )}
 

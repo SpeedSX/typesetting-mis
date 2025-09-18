@@ -33,10 +33,11 @@ public class AuthService(
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken)
     {
         var loginEmail = loginDto.Email.Trim().ToLowerInvariant();
+        var normalized = loginEmail.ToUpperInvariant();
         var user = await context.Users
             .Include(u => u.Company)
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Email == loginEmail, cancellationToken);
+            .FirstOrDefaultAsync(u => u.NormalizedEmail == normalized, cancellationToken);
 
         if (user is not { IsActive: true, PasswordHash: not null, Email: not null })
             return null;
@@ -84,9 +85,10 @@ public class AuthService(
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto registerDto, CancellationToken cancellationToken)
     {
         // Check if user already exists
-        var email = registerDto.Email.Trim().ToLowerInvariant();
+        var email = registerDto.Email.Trim();
+        var normalized = email.ToUpperInvariant();
         var existingUser = await context.Users
-            .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == email, cancellationToken);
+            .FirstOrDefaultAsync(u => u.NormalizedEmail == normalized, cancellationToken);
 
         if (existingUser != null)
             return null;
@@ -112,6 +114,7 @@ public class AuthService(
             defaultRole = new Role
             {
                 Name = "User",
+                NormalizedName = "USER",
                 CompanyId = company.Id,
                 Permissions = "[]" // Basic permissions
             };
@@ -122,7 +125,7 @@ public class AuthService(
         // Create new user
         var user = new User
         {
-            Email = email,
+            Email = email.Trim(),
             FirstName = registerDto.FirstName,
             LastName = registerDto.LastName,
             CompanyId = company.Id,
