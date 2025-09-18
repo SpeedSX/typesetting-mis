@@ -13,6 +13,9 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
         var key = new SymmetricSecurityKey(jwtConfig.GetSigningKeyBytes());
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+        var now = DateTime.UtcNow;
+        var notBefore = now.AddSeconds(-30); // Set NBF 30 seconds in the past to avoid timing issues
+        
         var claimsList = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -24,10 +27,10 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
             new("company_id", user.CompanyId.ToString()),
             new("role_id", user.RoleId.ToString()),
             new("role_name", user.Role?.Name ?? ""),
-            new("is_active", user.IsActive.ToString()),
+            new("is_active", user.IsActive ? "true" : "false", ClaimValueTypes.Boolean),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64),
-            new(JwtRegisteredClaimNames.Nbf, EpochTime.GetIntDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64)
+            new(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(now).ToString(), ClaimValueTypes.Integer64),
+            new(JwtRegisteredClaimNames.Nbf, EpochTime.GetIntDate(notBefore).ToString(), ClaimValueTypes.Integer64)
         };
 
         if (!string.IsNullOrWhiteSpace(user.Role?.Name))
@@ -39,7 +42,8 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
             issuer: jwtConfig.GetIssuer(),
             audience: jwtConfig.GetAudience(),
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(jwtConfig.GetExpiryMinutes()),
+            notBefore: notBefore, // Explicitly set notBefore
+            expires: now.AddMinutes(jwtConfig.GetExpiryMinutes()),
             signingCredentials: credentials
         );
 
@@ -57,12 +61,7 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
     {
         try
         {
-            var validationParameters = (TokenValidationParameters)jwtConfig.GetTokenValidationParameters();
-            // Add additional validation requirements specific to manual validation
-            validationParameters.RequireSignedTokens = true;
-            validationParameters.RequireExpirationTime = true;
-            validationParameters.ValidAlgorithms = [SecurityAlgorithms.HmacSha256];
-            
+            var validationParameters = jwtConfig.GetTokenValidationParameters();
             new JwtSecurityTokenHandler().ValidateToken(token, validationParameters, out SecurityToken _);
             return true;
         }

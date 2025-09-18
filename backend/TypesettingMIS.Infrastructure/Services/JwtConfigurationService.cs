@@ -23,7 +23,12 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
             ValidIssuer = configuration["Jwt:Issuer"],
             ValidAudience = configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            ClockSkew = TimeSpan.Zero // Consistent with manual validation
+            ClockSkew = TimeSpan.Zero,
+            
+            // Additional security requirements
+            RequireSignedTokens = true,
+            RequireExpirationTime = true,
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 }
         };
     }
 
@@ -76,7 +81,7 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
         return Encoding.UTF8.GetBytes(refreshTokenSecret);
     }
 
-    public object GetTokenValidationParameters()
+    public TokenValidationParameters GetTokenValidationParameters()
     {
         return GetTokenValidationParameters(configuration);
     }

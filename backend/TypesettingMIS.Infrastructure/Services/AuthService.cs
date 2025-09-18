@@ -32,8 +32,7 @@ public class AuthService(
 
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken)
     {
-        var loginEmail = loginDto.Email.Trim().ToLowerInvariant();
-        var normalized = loginEmail.ToUpperInvariant();
+        var normalized = loginDto.Email.Trim().ToUpperInvariant();
         var user = await context.Users
             .Include(u => u.Company)
             .Include(u => u.Role)
@@ -125,7 +124,7 @@ public class AuthService(
         // Create new user
         var user = new User
         {
-            Email = email.Trim(),
+            Email = email,
             FirstName = registerDto.FirstName,
             LastName = registerDto.LastName,
             CompanyId = company.Id,

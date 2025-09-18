@@ -29,31 +29,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var now = DateTime.UtcNow;
-        
-        foreach (var entry in ChangeTracker.Entries<BaseEntity>())
-        {
-            if (entry.State == EntityState.Modified)
-            {
-                entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = now;
-            }
-        }
-        
+        TouchUpdatedTimestamps();
         return base.SaveChangesAsync(cancellationToken);
     }
 
     public override int SaveChanges()
     {
-        var now = DateTime.UtcNow;
-        
-        foreach (var entry in ChangeTracker.Entries<BaseEntity>())
-        {
-            if (entry.State == EntityState.Modified)
-            {
-                entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = now;
-            }
-        }
-        
+        TouchUpdatedTimestamps();
         return base.SaveChanges();
     }
 
@@ -407,6 +389,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                     .Property(nameof(BaseEntity.UpdatedAt))
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
             }
+        }
+    }
+
+    private void TouchUpdatedTimestamps()
+    {
+        var now = DateTime.UtcNow;
+        foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+        {
+            if (entry.State == EntityState.Modified)
+                entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = now;
         }
     }
 }

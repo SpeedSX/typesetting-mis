@@ -30,6 +30,8 @@ class ApiService {
     });
 
     // Add response interceptor for error handling
+    let refreshPromise: Promise<string> | null = null;
+
     this.api.interceptors.response.use(
       (response) => response,
       async (error) => {
@@ -41,16 +43,19 @@ class ApiService {
         if (error.response?.status === 401 && !original._retry && isBrowser && !isAuthRefresh) {
           original._retry = true;
           try {
-            // Use bare axios to avoid interceptor recursion
-            const refreshResp: AxiosResponse<AuthResponse> = await axios.post(
-              `${this.api.defaults.baseURL}/auth/refresh`,
-              null,
-              { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
-            );
-            const newToken = refreshResp.data.token;
+            if (!refreshPromise) {
+              refreshPromise = axios
+                .post<AuthResponse>(
+                  `${this.api.defaults.baseURL}/auth/refresh`,
+                  null,
+                  { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
+                )
+                .then(r => r.data.token)
+                .finally(() => { refreshPromise = null; });
+            }
+            const newToken = await refreshPromise;
             if (newToken) {
               localStorage.setItem('authToken', newToken);
-              this.api.defaults.headers.Authorization = `Bearer ${newToken}`;
               original.headers = original.headers ?? {};
               original.headers.Authorization = `Bearer ${newToken}`;
             }

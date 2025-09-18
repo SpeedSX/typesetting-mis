@@ -24,3 +24,6 @@ globs: frontend/**/*.ts,frontend/**/*.tsx
 
 ## Authentication Flow
 - Use [ProtectedRoute](mdc:frontend/src/components/ProtectedRoute.tsx) for route protection
+
+## Languages
+- Support Ukrainian and English, user can switch the interface language
