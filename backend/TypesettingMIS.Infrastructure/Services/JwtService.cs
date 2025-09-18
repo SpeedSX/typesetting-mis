@@ -72,21 +72,6 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
         }
     }
 
-    public string? GetUserIdFromToken(string token)
-    {
-        try
-        {
-            if (!ValidateToken(token))
-                return null;
-            var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
-            return jwt.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
     public DateTime GetExpiryUtc(string token)
     {
         return new JwtSecurityTokenHandler().ReadJwtToken(token).ValidTo;

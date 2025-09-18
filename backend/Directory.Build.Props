@@ -1,7 +1,6 @@
 <Project>
   <PropertyGroup>
     <LangVersion>13.0</LangVersion>
-    <AnalysisLevel>latest-recommended</AnalysisLevel>
     <WarningsNotAsErrors>$(WarningsNotAsErrors);CS1591;CA1848;CA1051;CA1861;CA1725</WarningsNotAsErrors>
   </PropertyGroup>
 </Project>
