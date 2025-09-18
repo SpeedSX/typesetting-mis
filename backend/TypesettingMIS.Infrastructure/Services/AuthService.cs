@@ -83,15 +83,6 @@ public class AuthService(
 
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto registerDto, CancellationToken cancellationToken)
     {
-        // Check if user already exists
-        var email = registerDto.Email.Trim();
-        var normalized = email.ToUpperInvariant();
-        var existingUser = await context.Users
-            .FirstOrDefaultAsync(u => u.NormalizedEmail == normalized, cancellationToken);
-
-        if (existingUser != null)
-            return null;
-
         // Validate invitation token
         var invitation = await invitationService.ValidateInvitationAsync(registerDto.InvitationToken, cancellationToken);
         if (invitation == null)
@@ -102,6 +93,15 @@ public class AuthService(
             .FirstOrDefaultAsync(c => c.Id == invitation.CompanyId && !c.IsDeleted, cancellationToken);
 
         if (company == null)
+            return null;
+
+        // Check if user already exists
+        var email = registerDto.Email.Trim();
+        var normalized = email.ToUpperInvariant();
+        var existingUser = await context.Users
+            .FirstOrDefaultAsync(u => u.CompanyId == invitation.CompanyId && u.NormalizedEmail == normalized, cancellationToken);
+
+        if (existingUser != null)
             return null;
 
         // Get default role (or create one)

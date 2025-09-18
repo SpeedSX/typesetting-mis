@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -28,7 +27,7 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
             // Additional security requirements
             RequireSignedTokens = true,
             RequireExpirationTime = true,
-            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 }
+            ValidAlgorithms = [SecurityAlgorithms.HmacSha256]
         };
     }
 
