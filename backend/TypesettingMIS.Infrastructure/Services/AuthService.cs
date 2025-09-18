@@ -209,6 +209,8 @@ public class AuthService(
         var newToken = jwtService.GenerateToken(user);
         var newRefreshToken = jwtService.GenerateRefreshToken();
 
+        await using var tx = await context.Database.BeginTransactionAsync(cancellationToken);
+
         // Revoke the old refresh token
         storedToken.IsRevoked = true;
         storedToken.RevokedAt = DateTime.UtcNow;
@@ -225,7 +227,8 @@ public class AuthService(
         };
         context.RefreshTokens.Add(newRefreshTokenEntity);
 
-        await context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken); // expect concurrency handling at DB level
+        await tx.CommitAsync(cancellationToken);
 
         return new AuthResponseDto
         {
