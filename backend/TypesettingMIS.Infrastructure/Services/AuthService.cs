@@ -125,11 +125,17 @@ public class AuthService(
         var user = new User
         {
             Email = email,
+            NormalizedEmail = normalized,
+            UserName = email,
+            NormalizedUserName = normalized,
             FirstName = registerDto.FirstName,
             LastName = registerDto.LastName,
             CompanyId = company.Id,
             RoleId = defaultRole.Id,
-            IsActive = true
+            IsActive = true,
+            EmailConfirmed = true,
+            SecurityStamp = Guid.NewGuid().ToString(),
+            ConcurrencyStamp = Guid.NewGuid().ToString()
         };
 
         user.PasswordHash = passwordHasher.HashPassword(user, registerDto.Password);
