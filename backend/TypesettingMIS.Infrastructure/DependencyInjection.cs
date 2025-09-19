@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TypesettingMIS.Application.Common.Interfaces;
 using TypesettingMIS.Core.Entities;
 using TypesettingMIS.Core.Services;
 using TypesettingMIS.Infrastructure.Data;
@@ -21,6 +22,9 @@ public static class DependencyInjection
                 npgsql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10),
                     errorCodesToAdd: null);
             }));
+
+        // Register the IApplicationDbContext interface
+        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
         // Add Identity services
         services.AddIdentityCore<User>(options =>
