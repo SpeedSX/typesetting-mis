@@ -95,6 +95,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .IsUnique();
             entity.HasIndex(e => new { e.CompanyId, e.NormalizedUserName })
                 .IsUnique();
+            entity.HasIndex(e => e.NormalizedUserName)
+                .IsUnique(false)
+                .HasDatabaseName("UserNameIndex");
         });
 
         // Configure Role
@@ -393,11 +396,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             {
                 modelBuilder.Entity(entityType.ClrType)
                     .Property(nameof(BaseEntity.CreatedAt))
-                    .HasDefaultValueSql("timezone('utc', now())");
+                    .HasDefaultValueSql("now() at time zone 'utc'")
+                    .HasColumnType("timestamp with time zone");
 
                 modelBuilder.Entity(entityType.ClrType)
                     .Property(nameof(BaseEntity.UpdatedAt))
-                    .HasDefaultValueSql("timezone('utc', now())");
+                    .HasDefaultValueSql("now() at time zone 'utc'")
+                    .HasColumnType("timestamp with time zone");
             }
         }
     }

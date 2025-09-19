@@ -82,20 +82,6 @@ The Typesetting MIS is a scalable, cloud-native platform that serves 100-200 typ
 - **CDN**: CloudFront for static asset delivery
 - **CI/CD**: GitHub Actions with automated testing and deployment
 
-## 📁 Project Structure
-
-```
-typesetting-mis/
-├── docs/                          # Documentation
-│   ├── PROJECT_PLAN.md           # Project overview and requirements
-│   ├── SYSTEM_ARCHITECTURE.md    # Technical architecture
-│   ├── DATABASE_SCHEMA.md        # Database design
-│   ├── MULTI_TENANT_ARCHITECTURE.md # Multi-tenancy design
-│   ├── FRONTEND_ARCHITECTURE.md  # Frontend design
-│   └── SECURITY_COMPLIANCE.md    # Security and compliance
-└── README.md
-```
-
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -321,46 +307,6 @@ tests/
    # Verify deployment
    kubectl get pods -n typesetting-mis
    ```
-
-### CI/CD Pipeline
-
-The GitHub Actions workflow uses Docker for building and pushing images:
-
-```yaml
-# .github/workflows/build-and-deploy.yml
-name: Build and Deploy
-on:
-  push:
-    branches: [main]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      
-      - name: Build backend image
-        run: docker build -t ${{ secrets.REGISTRY }}/typesetting-mis-backend:${{ github.sha }} ./backend
-      
-      - name: Build frontend image
-        run: docker build -t ${{ secrets.REGISTRY }}/typesetting-mis-frontend:${{ github.sha }} ./frontend
-      
-      - name: Push images
-        run: |
-          docker push ${{ secrets.REGISTRY }}/typesetting-mis-backend:${{ github.sha }}
-          docker push ${{ secrets.REGISTRY }}/typesetting-mis-frontend:${{ github.sha }}
-```
-
-3. **Configure DNS and SSL**
-   ```bash
-   # Update DNS records
-   # Configure SSL certificates
-   # Update load balancer configuration
-   ```
-
 ### Scaling
 
 The platform is designed to scale horizontally:
@@ -393,78 +339,9 @@ dotnet list package --vulnerable
 # Run penetration tests
 dotnet test --filter Category=Penetration
 ```
-
-## 📊 Monitoring and Observability
-
-### Metrics and Monitoring
-
-- **Application Performance**: DataDog APM
-- **Infrastructure**: CloudWatch metrics
-- **Logs**: Centralized logging with ELK stack
-- **Alerts**: Proactive alerting for critical issues
-
-### Health Checks
-
-- **Service Health**: `/health` endpoint for each service
-- **Database Health**: Connection and query performance monitoring
-- **External Dependencies**: Third-party service health monitoring
-
-## 🤝 Contributing
-
-### Development Workflow
-
-1. **Create a feature branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-2. **Make your changes**
-   - Follow the coding standards
-   - Write tests for new functionality
-   - Update documentation as needed
-
-3. **Test your changes**
-   ```bash
-   dotnet test
-   dotnet format
-   dotnet build
-   ```
-
-4. **Submit a pull request**
-   - Provide a clear description of changes
-   - Include screenshots for UI changes
-   - Ensure all tests pass
-
-### Coding Standards
-
-- **C#**: .NET 9 with nullable reference types enabled
-- **EditorConfig**: Consistent code formatting
-- **StyleCop**: Code style analysis
-- **Conventional Commits**: Commit message format
-- **Test Coverage**: Minimum 80% coverage required
-
-## 📚 Documentation
-
-- [Project Plan](docs/PROJECT_PLAN.md) - Overview and requirements
-- [System Architecture](docs/SYSTEM_ARCHITECTURE.md) - Technical architecture
-- [Database Schema](docs/DATABASE_SCHEMA.md) - Database design
-- [Multi-tenant Architecture](docs/MULTI_TENANT_ARCHITECTURE.md) - Multi-tenancy design
-- [Frontend Architecture](docs/FRONTEND_ARCHITECTURE.md) - Frontend design
-- [Deployment Strategy](docs/DEPLOYMENT_STRATEGY.md) - Deployment and scaling
-- [Security & Compliance](docs/SECURITY_COMPLIANCE.md) - Security requirements
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-For support and questions:
-
-- **Documentation**: Check the docs/ directory
-- **Issues**: Create a GitHub issue
-- **Discussions**: Use GitHub Discussions for questions
-- **Email**: support@typesetting-mis.com
 
 ## 🗺️ Roadmap
 
