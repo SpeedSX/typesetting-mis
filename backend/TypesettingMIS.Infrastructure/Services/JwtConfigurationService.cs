@@ -13,22 +13,15 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
         if (string.IsNullOrEmpty(jwtKey))
             throw new InvalidOperationException("JWT key is not configured");
 
-        return new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = configuration["Jwt:Issuer"],
-            ValidAudience = configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            ClockSkew = TimeSpan.Zero,
-            
-            // Additional security requirements
-            RequireSignedTokens = true,
-            RequireExpirationTime = true,
-            ValidAlgorithms = [SecurityAlgorithms.HmacSha256]
-        };
+        var issuer = configuration["Jwt:Issuer"];
+        if (string.IsNullOrWhiteSpace(issuer))
+            throw new InvalidOperationException("JWT issuer is not configured");
+
+        var audience = configuration["Jwt:Audience"];
+        if (string.IsNullOrWhiteSpace(audience))
+            throw new InvalidOperationException("JWT audience is not configured");
+
+        return CreateTokenValidationParameters(issuer, audience, Encoding.UTF8.GetBytes(jwtKey));
     }
 
     public string GetIssuer()
@@ -80,8 +73,23 @@ public class JwtConfigurationService(IConfiguration configuration) : IJwtConfigu
         return Encoding.UTF8.GetBytes(refreshTokenSecret);
     }
 
-    public TokenValidationParameters GetTokenValidationParameters()
+    private static TokenValidationParameters CreateTokenValidationParameters(string issuer, string audience, byte[] signingKeyBytes)
     {
-        return GetTokenValidationParameters(configuration);
+        return new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = issuer,
+            ValidAudience = audience,
+            IssuerSigningKey = new SymmetricSecurityKey(signingKeyBytes),
+            ClockSkew = TimeSpan.Zero,
+
+            // Additional security requirements
+            RequireSignedTokens = true,
+            RequireExpirationTime = true,
+            ValidAlgorithms = [SecurityAlgorithms.HmacSha256]
+        };
     }
 }

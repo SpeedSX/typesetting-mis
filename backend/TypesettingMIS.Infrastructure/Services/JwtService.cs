@@ -56,20 +56,6 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
         return Base64UrlEncoder.Encode(bytes);
     }
 
-    public bool ValidateToken(string token)
-    {
-        try
-        {
-            var validationParameters = jwtConfig.GetTokenValidationParameters();
-            new JwtSecurityTokenHandler().ValidateToken(token, validationParameters, out SecurityToken _);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
     public DateTime GetExpiryUtc(string token)
     {
         var dt = new JwtSecurityTokenHandler().ReadJwtToken(token).ValidTo;
