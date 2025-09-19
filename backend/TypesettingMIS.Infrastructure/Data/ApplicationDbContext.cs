@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using TypesettingMIS.Application.Common.Interfaces;
 using TypesettingMIS.Core.Entities;
 
 namespace TypesettingMIS.Infrastructure.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-    : IdentityDbContext<User, Role, Guid>(options)
+    : IdentityDbContext<User, Role, Guid>(options), IApplicationDbContext
 {
     // Shared entities (not tenant-specific)
     public DbSet<Company> Companies { get; set; }

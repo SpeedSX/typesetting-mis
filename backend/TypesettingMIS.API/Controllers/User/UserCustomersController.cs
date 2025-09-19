@@ -1,19 +1,20 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using TypesettingMIS.Application.Features.Customers.Commands.CreateCustomer;
+using TypesettingMIS.Application.Features.Customers.Commands.DeleteCustomer;
+using TypesettingMIS.Application.Features.Customers.Commands.UpdateCustomer;
+using TypesettingMIS.Application.Features.Customers.Queries.GetCustomer;
+using TypesettingMIS.Application.Features.Customers.Queries.GetCustomers;
 using TypesettingMIS.Core.DTOs.Customer;
 using TypesettingMIS.Core.Services;
-using TypesettingMIS.Infrastructure.Data;
 
 namespace TypesettingMIS.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/customers")]
 [Authorize]
-public class UserCustomersController(
-    ApplicationDbContext context,
-    ITenantContext tenantContext,
-    ITenantAwareService tenantAwareService)
+public class UserCustomersController(IMediator mediator, ITenantContext tenantContext)
     : BaseController(tenantContext)
 {
     /// <summary>
@@ -22,28 +23,15 @@ public class UserCustomersController(
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers(CancellationToken cancellationToken)
     {
-        if (!IsMultiTenant)
+        var query = new GetCustomersQuery();
+        var result = await mediator.Send(query, cancellationToken);
+
+        if (!result.IsSuccess)
         {
-            return BadRequest(new { message = "Tenant context is required for this operation" });
+            return BadRequest(new { message = result.ErrorMessage });
         }
 
-        var customers = await tenantAwareService
-            .ApplyTenantFilter(context.Customers)
-            .AsNoTracking()
-            .Where(c => !c.IsDeleted)
-            .Select(c => new CustomerDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Email = c.Email,
-                Phone = c.Phone,
-                TaxId = c.TaxId,
-                CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt
-            })
-            .ToListAsync(cancellationToken);
-
-        return Ok(customers);
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -52,33 +40,15 @@ public class UserCustomersController(
     [HttpGet("{id}")]
     public async Task<ActionResult<CustomerDto>> GetCustomer(Guid id, CancellationToken cancellationToken)
     {
-        if (!IsMultiTenant)
+        var query = new GetCustomerQuery(id);
+        var result = await mediator.Send(query, cancellationToken);
+
+        if (!result.IsSuccess)
         {
-            return BadRequest(new { message = "Tenant context is required for this operation" });
+            return NotFound(new { message = result.ErrorMessage });
         }
 
-        var customer = await tenantAwareService
-            .ApplyTenantFilter(context.Customers)
-            .AsNoTracking()
-            .Where(c => c.Id == id && !c.IsDeleted)
-            .Select(c => new CustomerDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Email = c.Email,
-                Phone = c.Phone,
-                TaxId = c.TaxId,
-                CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt
-            })
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (customer == null)
-        {
-            return NotFound();
-        }
-
-        return Ok(customer);
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -87,38 +57,20 @@ public class UserCustomersController(
     [HttpPost]
     public async Task<ActionResult<CustomerDto>> CreateCustomer(CreateCustomerDto createCustomerDto, CancellationToken cancellationToken)
     {
-        if (!IsMultiTenant)
+        var command = new CreateCustomerCommand(
+            createCustomerDto.Name,
+            createCustomerDto.Email,
+            createCustomerDto.Phone,
+            createCustomerDto.TaxId);
+
+        var result = await mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
         {
-            return BadRequest(new { message = "Tenant context is required for this operation" });
+            return BadRequest(new { message = result.ErrorMessage });
         }
 
-        var name = createCustomerDto.Name.Trim();
-        var email = createCustomerDto.Email?.Trim().ToLowerInvariant();
-
-        var customer = new TypesettingMIS.Core.Entities.Customer
-        {
-            Name = name,
-            Email = email,
-            Phone = createCustomerDto.Phone?.Trim(),
-            TaxId = createCustomerDto.TaxId?.Trim(),
-            CompanyId = CurrentTenantId!.Value
-        };
-
-        context.Customers.Add(customer);
-        await context.SaveChangesAsync(cancellationToken);
-
-        var customerDto = new CustomerDto
-        {
-            Id = customer.Id,
-            Name = customer.Name,
-            Email = customer.Email,
-            Phone = customer.Phone,
-            TaxId = customer.TaxId,
-            CreatedAt = customer.CreatedAt,
-            UpdatedAt = customer.UpdatedAt
-        };
-
-        return CreatedAtAction(nameof(GetCustomer), new { id = customer.Id }, customerDto);
+        return CreatedAtAction(nameof(GetCustomer), new { id = result.Data!.Id }, result.Data);
     }
 
     /// <summary>
@@ -127,35 +79,19 @@ public class UserCustomersController(
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCustomer(Guid id, UpdateCustomerDto updateCustomerDto, CancellationToken cancellationToken)
     {
-        if (!IsMultiTenant)
+        var command = new UpdateCustomerCommand(
+            id,
+            updateCustomerDto.Name,
+            updateCustomerDto.Email,
+            updateCustomerDto.Phone,
+            updateCustomerDto.TaxId);
+
+        var result = await mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
         {
-            return BadRequest(new { message = "Tenant context is required for this operation" });
+            return BadRequest(new { message = result.ErrorMessage });
         }
-
-        var customer = await tenantAwareService
-            .ApplyTenantFilter(context.Customers)
-            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, cancellationToken);
-
-        if (customer == null)
-        {
-            return NotFound();
-        }
-
-        if (updateCustomerDto.Name != null)
-            customer.Name = updateCustomerDto.Name.Trim();
-
-        if (updateCustomerDto.Email != null)
-            customer.Email = updateCustomerDto.Email.Trim().ToLowerInvariant();
-
-        if (updateCustomerDto.Phone != null)
-            customer.Phone = updateCustomerDto.Phone.Trim();
-
-        if (updateCustomerDto.TaxId != null)
-            customer.TaxId = updateCustomerDto.TaxId.Trim();
-
-        customer.UpdatedAt = DateTime.UtcNow;
-
-        await context.SaveChangesAsync(cancellationToken);
 
         return NoContent();
     }
@@ -166,24 +102,13 @@ public class UserCustomersController(
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCustomer(Guid id, CancellationToken cancellationToken)
     {
-        if (!IsMultiTenant)
+        var command = new DeleteCustomerCommand(id);
+        var result = await mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
         {
-            return BadRequest(new { message = "Tenant context is required for this operation" });
+            return BadRequest(new { message = result.ErrorMessage });
         }
-
-        var customer = await tenantAwareService
-            .ApplyTenantFilter(context.Customers)
-            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, cancellationToken);
-
-        if (customer == null)
-        {
-            return NotFound();
-        }
-
-        customer.IsDeleted = true;
-        customer.UpdatedAt = DateTime.UtcNow;
-
-        await context.SaveChangesAsync(cancellationToken);
 
         return NoContent();
     }

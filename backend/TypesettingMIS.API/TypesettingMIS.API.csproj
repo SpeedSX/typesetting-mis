@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TypesettingMIS.Core\TypesettingMIS.Core.csproj" />
     <ProjectReference Include="..\TypesettingMIS.Infrastructure\TypesettingMIS.Infrastructure.csproj" />
+    <ProjectReference Include="..\TypesettingMIS.Application\TypesettingMIS.Application.csproj" />
   </ItemGroup>
 
 </Project>

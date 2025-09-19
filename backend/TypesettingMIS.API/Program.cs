@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text.Json;
+using TypesettingMIS.Application;
 using TypesettingMIS.Infrastructure;
 using TypesettingMIS.Infrastructure.Middleware;
 using TypesettingMIS.Infrastructure.Data;
@@ -47,6 +48,9 @@ builder.Services.AddCors(options =>
 
 // Add HttpContextAccessor for tenant context
 builder.Services.AddHttpContextAccessor();
+
+// Add Application services (must be before Infrastructure)
+builder.Services.AddApplication();
 
 // Add Infrastructure services
 builder.Services.AddInfrastructure(builder.Configuration);
