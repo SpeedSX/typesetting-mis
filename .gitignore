@@ -119,11 +119,6 @@ dump.rdb
 # Docker
 docker-compose.override.yml
 
-# Project-specific
-scripts/init-multiple-databases.sh
-*.ps1
-*.sh
-
 # Logs and temporary files
 *.tmp
 *.temp

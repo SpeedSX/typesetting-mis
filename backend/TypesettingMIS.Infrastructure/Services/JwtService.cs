@@ -24,7 +24,6 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
             new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
             new(ClaimTypes.GivenName, user.FirstName),
             new(ClaimTypes.Surname, user.LastName),
-            new("company_id", user.CompanyId.ToString()),
             new("role_id", user.RoleId.ToString()),
             new("is_active", user.IsActive ? "true" : "false", ClaimValueTypes.Boolean),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
@@ -34,6 +33,9 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
 
         if (!string.IsNullOrWhiteSpace(user.Role?.Name))
             claimsList.Add(new Claim(ClaimTypes.Role, user.Role!.Name));
+
+        if (user.CompanyId.HasValue)
+            claimsList.Add(new Claim("company_id", user.CompanyId.Value.ToString()));
 
         var claims = claimsList.ToArray();
 

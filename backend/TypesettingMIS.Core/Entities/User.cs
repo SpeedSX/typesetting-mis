@@ -13,7 +13,7 @@ public class User : IdentityUser<Guid>
     [MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
     
-    public Guid CompanyId { get; set; }
+    public Guid? CompanyId { get; set; } // Nullable for admin users
     public Company? Company { get; set; }
     
     public Guid RoleId { get; set; }
@@ -23,6 +23,10 @@ public class User : IdentityUser<Guid>
     public bool IsActive { get; set; } = true;
     
     public DateTime? LastLogin { get; set; }
+    
+    // Helper properties
+    public bool IsAdmin => CompanyId == null && Role?.Name == "Admin";
+    public bool IsCompanyUser => CompanyId != null;
     
     // Navigation properties
     public ICollection<Quote> CreatedQuotes { get; set; } = new List<Quote>();

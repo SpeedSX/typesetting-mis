@@ -986,7 +986,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CompanyId")
+                    b.Property<Guid?>("CompanyId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -1013,10 +1013,13 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
-                        .HasDatabaseName("RoleNameIndex");
+                        .IsUnique()
+                        .HasDatabaseName("IX_Roles_NormalizedName_System")
+                        .HasFilter("\"CompanyId\" IS NULL");
 
                     b.HasIndex("CompanyId", "NormalizedName")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"CompanyId\" IS NOT NULL");
 
                     b.ToTable("Roles", (string)null);
                 });
@@ -1079,7 +1082,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("CompanyId")
+                    b.Property<Guid?>("CompanyId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -1148,18 +1151,24 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
+                        .IsUnique()
+                        .HasDatabaseName("IX_Users_NormalizedEmail_Admin")
+                        .HasFilter("\"CompanyId\" IS NULL");
 
                     b.HasIndex("NormalizedUserName")
-                        .HasDatabaseName("UserNameIndex");
+                        .IsUnique()
+                        .HasDatabaseName("IX_Users_NormalizedUserName_Admin")
+                        .HasFilter("\"CompanyId\" IS NULL");
 
                     b.HasIndex("RoleId");
 
                     b.HasIndex("CompanyId", "NormalizedEmail")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"CompanyId\" IS NOT NULL");
 
                     b.HasIndex("CompanyId", "NormalizedUserName")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"CompanyId\" IS NOT NULL");
 
                     b.ToTable("Users", (string)null);
                 });
@@ -1449,8 +1458,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.HasOne("TypesettingMIS.Core.Entities.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Company");
                 });
@@ -1471,8 +1479,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.HasOne("TypesettingMIS.Core.Entities.Company", "Company")
                         .WithMany("Users")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("TypesettingMIS.Core.Entities.Role", "Role")
                         .WithMany("Users")

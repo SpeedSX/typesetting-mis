@@ -5,7 +5,7 @@ namespace TypesettingMIS.Core.Entities;
 
 public class Role : IdentityRole<Guid>
 {
-    public Guid CompanyId { get; set; }
+    public Guid? CompanyId { get; set; } // Nullable for system roles (Admin)
     public Company? Company { get; set; }
     
     public string? Description { get; set; }
