@@ -135,7 +135,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("Domain")
                         .IsRequired()
@@ -166,7 +166,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -192,7 +192,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("Email")
                         .HasMaxLength(255)
@@ -220,7 +220,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -244,7 +244,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -286,7 +286,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -311,7 +311,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<Guid>("EquipmentId")
                         .HasColumnType("uuid");
@@ -326,7 +326,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("Value")
                         .IsRequired()
@@ -349,7 +349,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -365,7 +365,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -387,7 +387,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -434,7 +434,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -455,7 +455,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<DateTimeOffset>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
@@ -474,7 +474,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<DateTimeOffset?>("UsedAt")
                         .HasColumnType("timestamp with time zone");
@@ -512,7 +512,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
@@ -547,7 +547,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -575,7 +575,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
@@ -616,7 +616,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -641,7 +641,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -678,7 +678,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -711,7 +711,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -735,7 +735,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -760,7 +760,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -784,7 +784,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -805,7 +805,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
@@ -840,7 +840,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<DateTime?>("ValidUntil")
                         .HasColumnType("timestamp with time zone");
@@ -866,7 +866,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -903,7 +903,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -925,7 +925,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
@@ -959,7 +959,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -1037,7 +1037,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -1061,7 +1061,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("timezone('utc', now())");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
 
                     b.HasKey("Id");
 
@@ -1151,7 +1151,6 @@ namespace TypesettingMIS.Infrastructure.Migrations
                         .HasDatabaseName("EmailIndex");
 
                     b.HasIndex("NormalizedUserName")
-                        .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
                     b.HasIndex("RoleId");

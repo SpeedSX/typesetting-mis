@@ -25,8 +25,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     Settings = table.Column<string>(type: "text", nullable: true),
                     SubscriptionPlan = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false, defaultValue: "basic"),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -41,8 +41,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -61,8 +61,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     Address = table.Column<string>(type: "text", nullable: true),
                     TaxId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -90,8 +90,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     ReorderPoint = table.Column<decimal>(type: "numeric(10,3)", precision: 10, scale: 3, nullable: false, defaultValue: 0m),
                     Supplier = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     Location = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -118,8 +118,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     UsedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     UsedByUserId = table.Column<Guid>(type: "uuid", nullable: true),
                     UsedByEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -144,8 +144,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     Calculation = table.Column<string>(type: "text", nullable: false),
                     Priority = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -170,8 +170,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     BasePrice = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: false),
                     Unit = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -220,8 +220,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     BasePrice = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: false),
                     Unit = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -250,8 +250,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     PurchaseCost = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: true),
                     Location = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     Notes = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -345,8 +345,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     CapabilityName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Value = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     Unit = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -372,8 +372,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     ValidUntil = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Notes = table.Column<string>(type: "text", nullable: true),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -414,8 +414,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     ReplacedByTokenHash = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     ReasonRevoked = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -527,8 +527,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Notes = table.Column<string>(type: "text", nullable: true),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -574,8 +574,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     TotalPrice = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: false),
                     ProductId = table.Column<Guid>(type: "uuid", nullable: true),
                     ServiceId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -612,8 +612,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     PaidDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -659,8 +659,8 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     TotalPrice = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: false),
                     ProductId = table.Column<Guid>(type: "uuid", nullable: true),
                     ServiceId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "timezone('utc', now())"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -902,8 +902,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "Users",
-                column: "NormalizedUserName",
-                unique: true);
+                column: "NormalizedUserName");
         }
 
         /// <inheritdoc />
