@@ -101,7 +101,9 @@ public class AuthController(IMediator mediator, IWebHostEnvironment environment,
             return Unauthorized(new { message = result.ErrorMessage });
         }
 
+        // Replace the old refresh token cookie with the new one
         var cookieOptions = BuildRefreshCookieOptions();
+        Response.Cookies.Delete(RefreshCookieName, BuildRefreshCookieOptions(forDeletion: true));
         Response.Cookies.Append(RefreshCookieName, result.Data!.RefreshToken, cookieOptions);
 
         // Remove refresh token from response body for security
