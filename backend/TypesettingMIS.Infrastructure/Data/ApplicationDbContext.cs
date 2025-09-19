@@ -84,20 +84,33 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(e => e.Company)
                 .WithMany(c => c.Users)
                 .HasForeignKey(e => e.CompanyId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull); // Set to null when company is deleted
 
             entity.HasOne(e => e.Role)
                 .WithMany(r => r.Users)
                 .HasForeignKey(e => e.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Unique constraint: Email must be unique within a company (or globally for admin users)
             entity.HasIndex(e => new { e.CompanyId, e.NormalizedEmail })
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("\"CompanyId\" IS NOT NULL"); // Only apply to company users
+            
+            // Global unique constraint for admin users (CompanyId IS NULL)
+            entity.HasIndex(e => e.NormalizedEmail)
+                .IsUnique()
+                .HasFilter("\"CompanyId\" IS NULL")
+                .HasDatabaseName("IX_Users_NormalizedEmail_Admin");
+                
+            // Similar for UserName
             entity.HasIndex(e => new { e.CompanyId, e.NormalizedUserName })
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("\"CompanyId\" IS NOT NULL");
+                
             entity.HasIndex(e => e.NormalizedUserName)
-                .IsUnique(false)
-                .HasDatabaseName("UserNameIndex");
+                .IsUnique()
+                .HasFilter("\"CompanyId\" IS NULL")
+                .HasDatabaseName("IX_Users_NormalizedUserName_Admin");
         });
 
         // Configure Role
@@ -108,13 +121,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .IsUnique(false)
                 .HasDatabaseName("RoleNameIndex");
             
-            // Keep the tenant-scoped unique constraint
-            entity.HasIndex(e => new { e.CompanyId, e.NormalizedName }).IsUnique();
+            // Keep the tenant-scoped unique constraint for company roles
+            entity.HasIndex(e => new { e.CompanyId, e.NormalizedName })
+                .IsUnique()
+                .HasFilter("\"CompanyId\" IS NOT NULL");
+                
+            // Global unique constraint for system roles (Admin)
+            entity.HasIndex(e => e.NormalizedName)
+                .IsUnique()
+                .HasFilter("\"CompanyId\" IS NULL")
+                .HasDatabaseName("IX_Roles_NormalizedName_System");
             
             entity.HasOne(e => e.Company)
                 .WithMany()
                 .HasForeignKey(e => e.CompanyId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull); // Set to null when company is deleted
         });
 
         // Configure Equipment

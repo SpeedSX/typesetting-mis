@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace TypesettingMIS.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreateWithNullableCompanyId : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -191,7 +191,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: true),
                     Permissions = table.Column<string>(type: "text", nullable: true),
                     IsSystem = table.Column<bool>(type: "boolean", nullable: false),
@@ -207,7 +207,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                         column: x => x.CompanyId,
                         principalTable: "Companies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -300,7 +300,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: true),
                     RoleId = table.Column<Guid>(type: "uuid", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     LastLogin = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -327,7 +327,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                         column: x => x.CompanyId,
                         principalTable: "Companies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Users_Roles_RoleId",
                         column: x => x.RoleId,
@@ -850,12 +850,15 @@ namespace TypesettingMIS.Infrastructure.Migrations
                 name: "IX_Roles_CompanyId_NormalizedName",
                 table: "Roles",
                 columns: new[] { "CompanyId", "NormalizedName" },
-                unique: true);
+                unique: true,
+                filter: "\"CompanyId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "RoleNameIndex",
+                name: "IX_Roles_NormalizedName_System",
                 table: "Roles",
-                column: "NormalizedName");
+                column: "NormalizedName",
+                unique: true,
+                filter: "\"CompanyId\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Services_CompanyId",
@@ -878,31 +881,37 @@ namespace TypesettingMIS.Infrastructure.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "EmailIndex",
-                table: "Users",
-                column: "NormalizedEmail");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Users_CompanyId_NormalizedEmail",
                 table: "Users",
                 columns: new[] { "CompanyId", "NormalizedEmail" },
-                unique: true);
+                unique: true,
+                filter: "\"CompanyId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_CompanyId_NormalizedUserName",
                 table: "Users",
                 columns: new[] { "CompanyId", "NormalizedUserName" },
-                unique: true);
+                unique: true,
+                filter: "\"CompanyId\" IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_NormalizedEmail_Admin",
+                table: "Users",
+                column: "NormalizedEmail",
+                unique: true,
+                filter: "\"CompanyId\" IS NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_NormalizedUserName_Admin",
+                table: "Users",
+                column: "NormalizedUserName",
+                unique: true,
+                filter: "\"CompanyId\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_RoleId",
                 table: "Users",
                 column: "RoleId");
-
-            migrationBuilder.CreateIndex(
-                name: "UserNameIndex",
-                table: "Users",
-                column: "NormalizedUserName");
         }
 
         /// <inheritdoc />
