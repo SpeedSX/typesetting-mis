@@ -26,7 +26,6 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
             new(ClaimTypes.Surname, user.LastName),
             new("company_id", user.CompanyId.ToString()),
             new("role_id", user.RoleId.ToString()),
-            new("role_name", user.Role?.Name ?? ""),
             new("is_active", user.IsActive ? "true" : "false", ClaimValueTypes.Boolean),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(now).ToString(), ClaimValueTypes.Integer64),
@@ -73,6 +72,7 @@ public class JwtService(IJwtConfigurationService jwtConfig) : IJwtService
 
     public DateTime GetExpiryUtc(string token)
     {
-        return new JwtSecurityTokenHandler().ReadJwtToken(token).ValidTo;
+        var dt = new JwtSecurityTokenHandler().ReadJwtToken(token).ValidTo;
+        return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
     }
 }

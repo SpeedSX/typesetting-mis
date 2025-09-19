@@ -13,23 +13,11 @@ namespace TypesettingMIS.Infrastructure.Migrations
             migrationBuilder.DropColumn(
                 name: "RowVersion",
                 table: "RefreshTokens");
-
-            migrationBuilder.AddColumn<uint>(
-                name: "xmin",
-                table: "RefreshTokens",
-                type: "xid",
-                rowVersion: true,
-                nullable: false,
-                defaultValue: 0u);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "xmin",
-                table: "RefreshTokens");
-
             migrationBuilder.AddColumn<byte[]>(
                 name: "RowVersion",
                 table: "RefreshTokens",

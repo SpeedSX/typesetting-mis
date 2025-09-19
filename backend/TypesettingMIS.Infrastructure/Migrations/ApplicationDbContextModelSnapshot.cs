@@ -965,8 +965,7 @@ namespace TypesettingMIS.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
+                        .IsRowVersion()
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 

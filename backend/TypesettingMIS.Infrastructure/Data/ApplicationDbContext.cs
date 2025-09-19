@@ -78,19 +78,23 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // Configure User
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasIndex(e => new { e.CompanyId, e.NormalizedEmail }).IsUnique();
             entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
             entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
-            
+
             entity.HasOne(e => e.Company)
                 .WithMany(c => c.Users)
                 .HasForeignKey(e => e.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.Role)
                 .WithMany(r => r.Users)
                 .HasForeignKey(e => e.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => new { e.CompanyId, e.NormalizedEmail })
+                .IsUnique();
+            entity.HasIndex(e => new { e.CompanyId, e.NormalizedUserName })
+                .IsUnique();
         });
 
         // Configure Role
@@ -358,9 +362,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             
             // Use PostgreSQL's xmin system column for concurrency control instead of bytea RowVersion
             entity.Property<uint>("xmin")
-                .HasColumnType("xid")
-                .ValueGeneratedOnAddOrUpdate()
-                .IsConcurrencyToken();
+                .HasColumnName("xmin")
+                .IsRowVersion()
+                .HasColumnType("xid");
             
             entity.HasOne(e => e.User)
                 .WithMany()
@@ -389,11 +393,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             {
                 modelBuilder.Entity(entityType.ClrType)
                     .Property(nameof(BaseEntity.CreatedAt))
-                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
-                    
+                    .HasDefaultValueSql("timezone('utc', now())");
+
                 modelBuilder.Entity(entityType.ClrType)
                     .Property(nameof(BaseEntity.UpdatedAt))
-                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    .HasDefaultValueSql("timezone('utc', now())");
             }
         }
     }
