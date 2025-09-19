@@ -4,20 +4,16 @@ using TypesettingMIS.Core.Entities;
 
 namespace TypesettingMIS.Infrastructure.Data;
 
-public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    : IdentityDbContext<User, Role, Guid>(options)
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-    {
-    }
-
     // Shared entities (not tenant-specific)
     public DbSet<Company> Companies { get; set; }
     public DbSet<EquipmentCategory> EquipmentCategories { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<Invitation> Invitations { get; set; }
 
     // Tenant-specific entities
-    public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
     public DbSet<Equipment> Equipment { get; set; }
     public DbSet<EquipmentCapability> EquipmentCapabilities { get; set; }
     public DbSet<Service> Services { get; set; }
@@ -31,42 +27,86 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<Inventory> Inventory { get; set; }
     public DbSet<PricingRule> PricingRules { get; set; }
 
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        TouchUpdatedTimestamps();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public override int SaveChanges()
+    {
+        TouchUpdatedTimestamps();
+        return base.SaveChanges();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Configure custom table names for ASP.NET Core Identity
+        modelBuilder.Entity<User>().ToTable("Users");
+        modelBuilder.Entity<Role>().ToTable("Roles");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>>().ToTable("UserRoles");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserClaim<Guid>>().ToTable("UserClaims");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<Guid>>().ToTable("UserLogins");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserToken<Guid>>().ToTable("UserTokens");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
 
         // Configure Company
         modelBuilder.Entity<Company>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Domain).IsUnique();
+            
+            // Enable citext extension for case-insensitive text
+            modelBuilder.HasPostgresExtension("citext");
+            
             entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
-            entity.Property(e => e.Domain).IsRequired().HasMaxLength(255);
+            
+            // Use citext for case-insensitive domain comparison
+            entity.Property(e => e.Domain)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnType("citext");
+            
+            entity.HasIndex(e => e.Domain)
+                .IsUnique()
+                .HasDatabaseName("IX_Companies_Domain_Unique");
+            
             entity.Property(e => e.SubscriptionPlan).HasMaxLength(50).HasDefaultValue("basic");
         });
 
         // Configure User
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasIndex(e => new { e.CompanyId, e.Email }).IsUnique();
             entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
             entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
-            
+
             entity.HasOne(e => e.Company)
                 .WithMany(c => c.Users)
                 .HasForeignKey(e => e.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.Role)
                 .WithMany(r => r.Users)
                 .HasForeignKey(e => e.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => new { e.CompanyId, e.NormalizedEmail })
+                .IsUnique();
+            entity.HasIndex(e => new { e.CompanyId, e.NormalizedUserName })
+                .IsUnique();
         });
 
         // Configure Role
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasIndex(e => new { e.CompanyId, e.Name }).IsUnique();
+            // Remove the default unique constraint on NormalizedName to allow tenant-scoped roles
+            entity.HasIndex(e => e.NormalizedName)
+                .IsUnique(false)
+                .HasDatabaseName("RoleNameIndex");
+            
+            // Keep the tenant-scoped unique constraint
+            entity.HasIndex(e => new { e.CompanyId, e.NormalizedName }).IsUnique();
             
             entity.HasOne(e => e.Company)
                 .WithMany()
@@ -83,7 +123,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.SerialNumber).HasMaxLength(255);
             entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("active");
             entity.Property(e => e.Location).HasMaxLength(255);
-            
+            entity.Property(e => e.PurchaseCost).HasPrecision(12, 2);
+
             entity.HasOne(e => e.Company)
                 .WithMany(c => c.Equipment)
                 .HasForeignKey(e => e.CompanyId)
@@ -124,7 +165,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
             entity.Property(e => e.Unit).IsRequired().HasMaxLength(50);
             entity.Property(e => e.BasePrice).HasPrecision(12, 2);
-            
+
             entity.HasOne(e => e.Company)
                 .WithMany(c => c.Services)
                 .HasForeignKey(e => e.CompanyId)
@@ -138,7 +179,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
             entity.Property(e => e.Unit).IsRequired().HasMaxLength(50);
             entity.Property(e => e.BasePrice).HasPrecision(12, 2);
-            
+
             entity.HasOne(e => e.Company)
                 .WithMany(c => c.Products)
                 .HasForeignKey(e => e.CompanyId)
@@ -313,15 +354,35 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         modelBuilder.Entity<RefreshToken>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Token).IsUnique();
-            entity.Property(e => e.Token).IsRequired().HasMaxLength(500);
+            entity.HasIndex(e => e.TokenHash).IsUnique();
+            entity.Property(e => e.TokenHash).IsRequired().HasMaxLength(500);
             entity.Property(e => e.RevokedByIp).HasMaxLength(50);
-            entity.Property(e => e.ReplacedByToken).HasMaxLength(500);
+            entity.Property(e => e.ReplacedByTokenHash).HasMaxLength(500);
             entity.Property(e => e.ReasonRevoked).HasMaxLength(100);
+            
+            // Use PostgreSQL's xmin system column for concurrency control instead of bytea RowVersion
+            entity.Property<uint>("xmin")
+                .HasColumnName("xmin")
+                .IsRowVersion()
+                .HasColumnType("xid");
             
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // Configure Invitation
+        modelBuilder.Entity<Invitation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.Property(e => e.Token).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.UsedByEmail).HasMaxLength(256);
+            
+            entity.HasOne(e => e.Company)
+                .WithMany()
+                .HasForeignKey(e => e.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -332,12 +393,22 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             {
                 modelBuilder.Entity(entityType.ClrType)
                     .Property(nameof(BaseEntity.CreatedAt))
-                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
-                    
+                    .HasDefaultValueSql("timezone('utc', now())");
+
                 modelBuilder.Entity(entityType.ClrType)
                     .Property(nameof(BaseEntity.UpdatedAt))
-                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    .HasDefaultValueSql("timezone('utc', now())");
             }
+        }
+    }
+
+    private void TouchUpdatedTimestamps()
+    {
+        var now = DateTime.UtcNow;
+        foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+        {
+            if (entry.State == EntityState.Modified)
+                entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = now;
         }
     }
 }

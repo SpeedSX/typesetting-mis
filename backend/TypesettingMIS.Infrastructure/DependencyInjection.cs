@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,9 +13,14 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-        
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(connectionString));
+
+        services.AddDbContextPool<ApplicationDbContext>(options =>
+            options.UseNpgsql(connectionString, npgsql =>
+            {
+                // Retry on transient network errors/timeouts
+                npgsql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorCodesToAdd: null);
+            }));
 
         // Add Identity services
         services.AddIdentityCore<User>(options =>
@@ -33,8 +36,10 @@ public static class DependencyInjection
         .AddEntityFrameworkStores<ApplicationDbContext>();
 
         // Add custom services
+        services.AddScoped<IJwtConfigurationService, JwtConfigurationService>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<ITenantContext, TenantContext>();
         services.AddScoped<ITenantAwareService, TenantAwareService>();
 

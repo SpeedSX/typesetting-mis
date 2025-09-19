@@ -7,6 +7,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isCheckingAuth: boolean;
   error: string | null;
 }
 
@@ -15,6 +16,7 @@ const initialState: AuthState = {
   token: localStorage.getItem('authToken'),
   isAuthenticated: false, // Don't assume authentication until verified
   isLoading: false,
+  isCheckingAuth: !!localStorage.getItem('authToken'), // Set to true if token exists
   error: null,
 };
 
@@ -25,13 +27,12 @@ export const login = createAsyncThunk(
     try {
       const response = await apiService.login(credentials);
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
       // refreshToken is now stored in httpOnly cookie, not localStorage
+      // User data is stored in Redux state, no need for localStorage
       return response;
     } catch (error: any) {
       // Clear any existing tokens on error
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Login failed');
     }
   }
@@ -43,13 +44,12 @@ export const register = createAsyncThunk(
     try {
       const response = await apiService.register(userData);
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
       // refreshToken is now stored in httpOnly cookie, not localStorage
+      // User data is stored in Redux state, no need for localStorage
       return response;
     } catch (error: any) {
       // Clear any existing tokens on error
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Registration failed');
     }
   }
@@ -66,7 +66,6 @@ export const getCurrentUser = createAsyncThunk(
       const status = error?.response?.status;
       if (status === 401 || status === 403) {
         localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
       }
       return rejectWithValue(error.response?.data?.message || 'Failed to get user');
     }
@@ -79,12 +78,10 @@ export const logout = createAsyncThunk(
     try {
       await apiService.logout();
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       // refreshToken cookie will be cleared by the backend
     } catch (error: any) {
       // Even if logout fails on server, clear local storage
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Logout failed');
     }
   }
@@ -96,13 +93,12 @@ export const refreshToken = createAsyncThunk(
     try {
       const response = await apiService.refreshToken();
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
       // refreshToken is stored in httpOnly cookie, not localStorage
+      // User data is stored in Redux state, no need for localStorage
       return response;
     } catch (error: any) {
       // Clear tokens on refresh failure
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       return rejectWithValue(error.response?.data?.message || 'Token refresh failed');
     }
   }
@@ -119,6 +115,9 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = true;
     },
+    setIsCheckingAuth: (state, action: PayloadAction<boolean>) => {
+      state.isCheckingAuth = action.payload;
+    },    
   },
   extraReducers: (builder) => {
     builder
@@ -165,19 +164,21 @@ const authSlice = createSlice({
       // Get current user
       .addCase(getCurrentUser.pending, (state) => {
         state.isLoading = true;
+        state.isCheckingAuth = true;
       })
       .addCase(getCurrentUser.fulfilled, (state, action: PayloadAction<User>) => {
         state.isLoading = false;
+        state.isCheckingAuth = false;
         state.user = action.payload;
         state.isAuthenticated = true;
         state.error = null;
       })
-      .addCase(getCurrentUser.rejected, (state, action) => {
+      .addCase(getCurrentUser.rejected, (state) => {
         state.isLoading = false;
-        state.error = action.payload as string;
+        state.isCheckingAuth = false;
+        state.error = null;
         state.isAuthenticated = false;
         state.user = null;
-        state.token = null;
         // refreshToken cleanup is handled in the thunk
       })
       // Logout
@@ -186,6 +187,7 @@ const authSlice = createSlice({
         state.token = null;
         state.isAuthenticated = false;
         state.isLoading = false;
+        state.isCheckingAuth = false;
         state.error = null;
       })
       // Refresh token
@@ -211,5 +213,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, setUser } = authSlice.actions;
+export const { clearError, setUser, setIsCheckingAuth } = authSlice.actions;
 export default authSlice.reducer;

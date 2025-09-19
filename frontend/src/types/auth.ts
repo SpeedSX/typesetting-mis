@@ -9,12 +9,11 @@ export interface RegisterRequest {
   confirmPassword: string;
   firstName: string;
   lastName: string;
-  companyId: string; // We'll convert this to Guid in the API call
+  invitationToken: string;
 }
 
 export interface AuthResponse {
   token: string;
-  refreshToken: string;
   expiresAt: string;
   user: User;
 }

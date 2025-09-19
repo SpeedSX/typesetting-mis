@@ -13,10 +13,10 @@ interface User {
 }
 
 interface UserStats {
-  totalUsers: number;
-  activeUsers: number;
-  inactiveUsers: number;
-  usersByCompany: Array<{ companyName: string; count: number }>;
+  readonly totalUsers: number;
+  readonly activeUsers: number;
+  readonly inactiveUsers: number;
+  readonly usersByCompany: { companyName: string; count: number }[];
 }
 
 interface UserState {

@@ -1,0 +1,11 @@
+---
+globs: backend/**/*.cs
+---
+
+# Backend Development Patterns
+
+## Entity Patterns
+- All entities inherit from [BaseEntity](mdc:backend/TypesettingMIS.Core/Entities/BaseEntity.cs)
+- Use `Guid` for primary keys
+- Include `CreatedAt`, `UpdatedAt`, `IsDeleted` from BaseEntity
+- Navigation properties should be properly configured in DbContext

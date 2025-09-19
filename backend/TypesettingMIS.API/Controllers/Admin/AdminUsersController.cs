@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TypesettingMIS.Core.DTOs.Admin;
 using TypesettingMIS.Core.Services;
 using TypesettingMIS.Infrastructure.Data;
 
@@ -9,37 +10,29 @@ namespace TypesettingMIS.API.Controllers.Admin;
 [ApiController]
 [Route("api/admin/users")]
 [Authorize(Roles = "Admin")]
-public class AdminUsersController : BaseController
+public class AdminUsersController(ApplicationDbContext context, ITenantContext tenantContext)
+    : BaseController(tenantContext)
 {
-    private readonly ApplicationDbContext _context;
-
-    public AdminUsersController(ApplicationDbContext context, ITenantContext tenantContext) 
-        : base(tenantContext)
-    {
-        _context = context;
-    }
-
     /// <summary>
     /// Get all users across all companies (Admin only)
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<object>> GetUsers()
+    public async Task<ActionResult<IEnumerable<AdminUserListItemDto>>> GetUsers(CancellationToken cancellationToken)
     {
-        var users = await _context.Users
-            .Include(u => u.Company)
-            .Include(u => u.Role)
-            .Select(u => new
+        var users = await context.Users
+            .AsNoTracking()
+            .Select(u => new AdminUserListItemDto
             {
-                u.Id,
-                u.Email,
-                u.FirstName,
-                u.LastName,
-                u.IsActive,
-                u.LastLogin,
-                CompanyName = u.Company.Name,
-                RoleName = u.Role.Name
+                Id = u.Id,
+                Email = u.Email ?? string.Empty,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                IsActive = u.IsActive,
+                LastLogin = u.LastLogin,
+                CompanyName = u.Company != null ? u.Company.Name : string.Empty,
+                RoleName = u.Role != null ? u.Role.Name : string.Empty
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return Ok(users);
     }
@@ -48,17 +41,23 @@ public class AdminUsersController : BaseController
     /// Get user count statistics (Admin only)
     /// </summary>
     [HttpGet("stats")]
-    public async Task<ActionResult<object>> GetUserStats()
+    public async Task<ActionResult<object>> GetUserStats(CancellationToken cancellationToken)
     {
-        var totalUsers = await _context.Users.CountAsync();
-        var activeUsers = await _context.Users.CountAsync(u => u.IsActive);
-        var usersByCompany = await _context.Users
-            .Include(u => u.Company)
-            .GroupBy(u => u.Company.Name)
-            .Select(g => new { CompanyName = g.Key, Count = g.Count() })
-            .ToListAsync();
+        var totalUsers = await context.Users.CountAsync(cancellationToken);
+        var activeUsers = await context.Users.CountAsync(u => u.IsActive, cancellationToken);
+        var usersByCompany = await context.Users
+            .AsNoTracking()
+            .GroupJoin(
+                context.Companies.AsNoTracking(),
+                u => u.CompanyId,
+                c => c.Id,
+                (u, cs) => new { u, companyName = cs.Select(c => c.Name).FirstOrDefault() ?? "(none)" })
+            .GroupBy(x => x.companyName)
+            .Select(g => new UserCountByCompanyDto { CompanyName = g.Key, Count = g.Count() })
+            .OrderBy(x => x.CompanyName)
+            .ToListAsync(cancellationToken);
 
-        return Ok(new
+        return Ok(new UserStatsDto
         {
             TotalUsers = totalUsers,
             ActiveUsers = activeUsers,

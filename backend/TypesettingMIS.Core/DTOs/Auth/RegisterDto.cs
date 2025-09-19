@@ -25,5 +25,5 @@ public class RegisterDto
     public string LastName { get; set; } = string.Empty;
 
     [Required]
-    public Guid CompanyId { get; set; }
+    public string InvitationToken { get; set; } = string.Empty;
 }

@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using System.Text.Json;
 using TypesettingMIS.Infrastructure;
 using TypesettingMIS.Infrastructure.Middleware;
 using TypesettingMIS.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using TypesettingMIS.Core.Entities;
+using TypesettingMIS.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,15 +18,30 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
-// Add CORS
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+var devOrigin = builder.Configuration["Cors:DevOrigin"] ?? "http://localhost:5173";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        if (allowedOrigins is { Length: > 0 })
+        {
+            policy.WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+        else if (builder.Environment.IsDevelopment())
+        {
+            policy.WithOrigins(devOrigin)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+        else
+        {
+            throw new InvalidOperationException("Cors:AllowedOrigins is not configured for Production");
+        }
     });
 });
 
@@ -41,17 +55,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-        };
+        // Use centralized JWT configuration
+        options.TokenValidationParameters = JwtConfigurationService.GetTokenValidationParameters(builder.Configuration);
     });
 
 builder.Services.AddAuthorization();

@@ -9,8 +9,12 @@ import {
   IconButton,
   InputAdornment,
   Divider,
+  CircularProgress,
 } from '@mui/material';
-import { ContentCopy, Share } from '@mui/icons-material';
+import { ContentCopy, Share, Link as LinkIcon } from '@mui/icons-material';
+import { apiService } from '../services/api';
+import type { Invitation } from '../types/invitation';
+import { isAxiosError } from 'axios';
 
 interface InvitationGeneratorProps {
   companyId: string;
@@ -18,11 +22,41 @@ interface InvitationGeneratorProps {
 }
 
 const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, companyName }) => {
-  const [copied, setCopied] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [copiedText, setCopiedText] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
+  const [invitation, setInvitation] = useState<Invitation | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const baseUrl = window.location.origin;
-  const invitationUrl = `${baseUrl}/register?companyId=${encodeURIComponent(companyId)}`;
+  const generateInvitation = async () => {
+    setIsGenerating(true);
+    setError(null);
+    
+    try {
+      const newInvitation = await apiService.createInvitation({
+        companyId,
+        expirationHours: 24 // 24 hours default
+      });
+      setInvitation(newInvitation);
+    } catch (err: unknown) {
+      const msg = isAxiosError(err)
+        ? err.response?.data?.message
+        : undefined;  
+      setError(msg || 'Failed to generate invitation');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const rawBaseUrl =
+    import.meta.env.VITE_PUBLIC_BASE_URL ??
+    (typeof window !== 'undefined' ? window.location.origin : '');
+  const baseUrl = rawBaseUrl?.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl      
+
+  const invitationUrl = invitation 
+    ? `${baseUrl}/register?invite=${encodeURIComponent(invitation.token)}`
+    : `${baseUrl}/register`;
   
   const fullInvitationText = customMessage 
     ? `${customMessage}\n\nRegistration Link: ${invitationUrl}`
@@ -31,8 +65,8 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(invitationUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2000);
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
@@ -41,8 +75,8 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
   const handleCopyFullText = async () => {
     try {
       await navigator.clipboard.writeText(fullInvitationText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedText(true);
+      setTimeout(() => setCopiedText(false), 2000);
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
@@ -72,45 +106,72 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
       </Typography>
       
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Create an invitation link for users to register and join <strong>{companyName}</strong>
+        Create a secure invitation link for users to register and join <strong>{companyName}</strong>
       </Typography>
 
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="Custom Message (Optional)"
-        value={customMessage}
-        onChange={(e) => setCustomMessage(e.target.value)}
-        placeholder="Add a custom message for the invitation..."
-        sx={{ mb: 2 }}
-      />
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-      <TextField
-        fullWidth
-        label="Invitation URL"
-        value={invitationUrl}
-        InputProps={{
-          readOnly: true,
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={handleCopyUrl} edge="end" aria-label="Copy invitation URL">
-                <ContentCopy />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-        sx={{ mb: 2 }}
-      />
+      {!invitation && (
+        <Box sx={{ mb: 2 }}>
+          <Button
+            variant="contained"
+            onClick={generateInvitation}
+            disabled={isGenerating}
+            startIcon={isGenerating ? <CircularProgress size={20} /> : <LinkIcon />}
+          >
+            {isGenerating ? 'Generating...' : 'Generate Secure Invitation'}
+          </Button>
+        </Box>
+      )}
+
+      {invitation && (
+        <>
+          <Alert severity="success" sx={{ mb: 2 }}>
+            Invitation generated successfully! Expires: {new Date(invitation.expiresAt).toLocaleString()}
+          </Alert>
+
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="Custom Message (Optional)"
+            value={customMessage}
+            onChange={(e) => setCustomMessage(e.target.value)}
+            placeholder="Add a custom message for the invitation..."
+            sx={{ mb: 2 }}
+          />
+
+          <TextField
+            fullWidth
+            label="Invitation URL"
+            value={invitationUrl}
+            slotProps={{
+              input: {
+                readOnly: true,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleCopyUrl} edge="end" aria-label="Copy invitation URL">
+                      <ContentCopy />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }
+            }}
+            sx={{ mb: 2 }}
+          />
 
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <Button
           variant="contained"
           startIcon={<ContentCopy />}
           onClick={handleCopyFullText}
-          disabled={copied}
+          disabled={copiedText}
         >
-          {copied ? 'Copied!' : 'Copy Full Text'}
+          {copiedText ? 'Copied!' : 'Copy Full Text'}
         </Button>
         
         <Button
@@ -122,9 +183,9 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
         </Button>
       </Box>
 
-      {copied && (
+      {(copiedUrl || copiedText) && (
         <Alert severity="success" sx={{ mt: 2 }}>
-          Invitation copied to clipboard!
+          {copiedUrl ? 'URL copied to clipboard!' : 'Invitation text copied to clipboard!'}
         </Alert>
       )}
 
@@ -146,6 +207,8 @@ const InvitationGenerator: React.FC<InvitationGeneratorProps> = ({ companyId, co
       >
         {fullInvitationText}
       </Paper>
+        </>
+      )}
     </Paper>
   );
 };

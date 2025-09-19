@@ -2,7 +2,8 @@ import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import type { AuthResponse, LoginRequest, RegisterRequest, User } from '../types/auth';
 import type { Company, CreateCompanyRequest, UpdateCompanyRequest } from '../types/company';
 import type { Customer, CreateCustomerRequest, UpdateCustomerRequest } from '../types/customer';
-import type { UserStats } from '../types/user';
+import type { UserStats, AdminUserListItem } from '../types/user';
+import type { Invitation, CreateInvitationRequest, ValidateInvitationRequest } from '../types/invitation';
 
 class ApiService {
   private api: AxiosInstance;
@@ -10,7 +11,6 @@ class ApiService {
   constructor() {
     const baseURL =
       import.meta.env.VITE_API_BASE_URL ||
-      (typeof process !== 'undefined' ? process.env.REACT_APP_API_BASE_URL : '') ||
       '/api';
     
     this.api = axios.create({
@@ -30,14 +30,42 @@ class ApiService {
     });
 
     // Add response interceptor for error handling
+    let refreshPromise: Promise<string> | null = null;
+
     this.api.interceptors.response.use(
       (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          // Token expired or invalid, redirect to login
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
+      async (error) => {
+        const original = (error.config || {}) as any;
+        const url = (original.url || '') as string;
+        const isBrowser = typeof window !== 'undefined';
+        const isAuthRefresh = url.includes('/auth/refresh');
+        
+        if (error.response?.status === 401 && !original._retry && isBrowser && !isAuthRefresh) {
+          original._retry = true;
+          try {
+            if (!refreshPromise) {
+              refreshPromise = axios
+                .post<AuthResponse>(
+                  `${this.api.defaults.baseURL}/auth/refresh`,
+                  null,
+                  { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
+                )
+                .then(r => r.data.token)
+                .finally(() => { refreshPromise = null; });
+            }
+            const newToken = await refreshPromise;
+            if (newToken) {
+              localStorage.setItem('authToken', newToken);
+              original.headers = original.headers ?? {};
+              original.headers.Authorization = `Bearer ${newToken}`;
+            }
+            return this.api.request(original);
+          } catch {
+            localStorage.removeItem('authToken');
+            const p = window.location.pathname;
+            const isAuthPage = p === '/login' || p === '/register';
+            if (!isAuthPage) window.location.href = '/login';
+          }
         }
         return Promise.reject(error);
       }
@@ -51,20 +79,12 @@ class ApiService {
   }
 
   async register(userData: RegisterRequest): Promise<AuthResponse> {
-    // Validate companyId as GUID before sending
-    const registerData = {
-      ...userData,
-      companyId: userData.companyId?.trim(),
-    };
-    if (registerData.companyId && !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(registerData.companyId)) {
-      throw new Error('Invalid companyId (expected GUID).');
-    }
-    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/register', registerData);
+    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/register', userData);
     return response.data;
   }
 
-  async getCurrentUser(): Promise<any> {
-    const response: AxiosResponse<any> = await this.api.get('/auth/me');
+  async getCurrentUser(): Promise<User> {
+    const response: AxiosResponse<User> = await this.api.get('/auth/me');
     return response.data;
   }
 
@@ -75,19 +95,22 @@ class ApiService {
   }
 
   async refreshToken(): Promise<AuthResponse> {
-    // Refresh token will be read from httpOnly cookie on the backend
-    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/refresh');
-    return response.data;
+    const resp = await axios.post<AuthResponse>(
+      `${this.api.defaults.baseURL}/auth/refresh`,
+      null,
+      { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
+    );
+    return resp.data;
   }
 
   // Admin User endpoints
-  async getUsers(): Promise<any[]> {
-    const response: AxiosResponse<User[]> = await this.api.get('/admin/users');
+  async getUsers(): Promise<AdminUserListItem[]> {
+    const response: AxiosResponse<AdminUserListItem[]> = await this.api.get('/admin/users');
     return response.data;
   }
 
   async getUserStats(): Promise<UserStats> {
-    const response: AxiosResponse<any> = await this.api.get('/admin/users/stats');
+    const response: AxiosResponse<UserStats> = await this.api.get('/admin/users/stats');
     return response.data;
   }
 
@@ -144,6 +167,17 @@ class ApiService {
 
   async deleteCustomer(id: string): Promise<void> {
     await this.api.delete(`/user/customers/${encodeURIComponent(id)}`);
+  }
+
+  // Admin Invitation endpoints
+  async createInvitation(invitation: CreateInvitationRequest): Promise<Invitation> {
+    const response: AxiosResponse<Invitation> = await this.api.post('/admin/invitations', invitation);
+    return response.data;
+  }
+
+  async validateInvitation(request: ValidateInvitationRequest): Promise<Invitation> {
+    const response: AxiosResponse<Invitation> = await this.api.post('/user/invitations/validate', request);
+    return response.data;
   }
 }
 

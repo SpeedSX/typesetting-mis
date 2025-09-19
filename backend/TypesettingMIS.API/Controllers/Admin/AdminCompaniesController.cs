@@ -10,24 +10,19 @@ namespace TypesettingMIS.API.Controllers.Admin;
 [ApiController]
 [Route("api/admin/companies")]
 [Authorize(Roles = "Admin")]
-public class AdminCompaniesController : BaseController
+public class AdminCompaniesController(ApplicationDbContext context, ITenantContext tenantContext)
+    : BaseController(tenantContext)
 {
-    private readonly ApplicationDbContext _context;
-
-    public AdminCompaniesController(ApplicationDbContext context, ITenantContext tenantContext) 
-        : base(tenantContext)
-    {
-        _context = context;
-    }
-
     /// <summary>
     /// Get all companies (Admin only)
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CompanyDto>>> GetCompanies()
+    public async Task<ActionResult<IEnumerable<CompanyDto>>> GetCompanies(CancellationToken cancellationToken)
     {
-        var companies = await _context.Companies
+        var companies = await context.Companies
+            .AsNoTracking()
             .Where(c => !c.IsDeleted)
+            .OrderBy(c => c.Name)
             .Select(c => new CompanyDto
             {
                 Id = c.Id,
@@ -39,7 +34,7 @@ public class AdminCompaniesController : BaseController
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return Ok(companies);
     }
@@ -48,9 +43,10 @@ public class AdminCompaniesController : BaseController
     /// Get company by ID (Admin only)
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<CompanyDto>> GetCompany(Guid id)
+    public async Task<ActionResult<CompanyDto>> GetCompany(Guid id, CancellationToken cancellationToken)
     {
-        var company = await _context.Companies
+        var company = await context.Companies
+            .AsNoTracking()
             .Where(c => c.Id == id && !c.IsDeleted)
             .Select(c => new CompanyDto
             {
@@ -63,7 +59,7 @@ public class AdminCompaniesController : BaseController
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt
             })
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (company == null)
         {
@@ -77,18 +73,25 @@ public class AdminCompaniesController : BaseController
     /// Create new company (Admin only)
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<CompanyDto>> CreateCompany(CreateCompanyDto createCompanyDto)
+    public async Task<ActionResult<CompanyDto>> CreateCompany(CreateCompanyDto createCompanyDto,
+        CancellationToken cancellationToken)
     {
+        var normalizedName = createCompanyDto.Name.Trim();
+        var normalizedDomain = createCompanyDto.Domain.Trim().ToLowerInvariant();
+        var exists = await context.Companies
+            .AnyAsync(c => c.Domain == normalizedDomain && !c.IsDeleted, cancellationToken);
+        if (exists) return Conflict(new { message = "Domain already exists." });
+
         var company = new TypesettingMIS.Core.Entities.Company
         {
-            Name = createCompanyDto.Name,
-            Domain = createCompanyDto.Domain,
+            Name = normalizedName,
+            Domain = normalizedDomain,
             Settings = createCompanyDto.Settings,
             SubscriptionPlan = createCompanyDto.SubscriptionPlan
         };
 
-        _context.Companies.Add(company);
-        await _context.SaveChangesAsync();
+        context.Companies.Add(company);
+        await context.SaveChangesAsync(cancellationToken);
 
         var companyDto = new CompanyDto
         {
@@ -109,10 +112,10 @@ public class AdminCompaniesController : BaseController
     /// Update company (Admin only)
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateCompany(Guid id, UpdateCompanyDto updateCompanyDto)
+    public async Task<IActionResult> UpdateCompany(Guid id, UpdateCompanyDto updateCompanyDto, CancellationToken cancellationToken)
     {
-        var company = await _context.Companies
-            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+        var company = await context.Companies
+            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, cancellationToken);
 
         if (company == null)
         {
@@ -120,8 +123,8 @@ public class AdminCompaniesController : BaseController
         }
 
         if (updateCompanyDto.Name != null)
-            company.Name = updateCompanyDto.Name;
-        
+            company.Name = updateCompanyDto.Name.Trim();
+
         if (updateCompanyDto.Settings != null)
             company.Settings = updateCompanyDto.Settings;
         
@@ -133,7 +136,7 @@ public class AdminCompaniesController : BaseController
 
         company.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         return NoContent();
     }
@@ -142,10 +145,10 @@ public class AdminCompaniesController : BaseController
     /// Delete company (Admin only)
     /// </summary>
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteCompany(Guid id)
+    public async Task<IActionResult> DeleteCompany(Guid id, CancellationToken cancellationToken)
     {
-        var company = await _context.Companies
-            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+        var company = await context.Companies
+            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, cancellationToken);
 
         if (company == null)
         {
@@ -155,7 +158,7 @@ public class AdminCompaniesController : BaseController
         company.IsDeleted = true;
         company.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         return NoContent();
     }

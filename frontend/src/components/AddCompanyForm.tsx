@@ -17,6 +17,15 @@ import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { createCompany, clearError } from '../store/slices/companySlice';
 import type { CreateCompanyRequest, CompanySettings } from '../types/company';
 import { TIMEZONES, CURRENCIES, SUBSCRIPTION_PLANS } from '../constants/org';
+import { DEFAULT_COMPANY_SETTINGS } from '../constants/companyDefaults';
+
+const initialForm: Omit<CreateCompanyRequest, 'settings'> = {
+  name: '',
+  domain: '',
+  subscriptionPlan: 'Basic',
+};
+
+const initialSettings: CompanySettings = { ...DEFAULT_COMPANY_SETTINGS };
 
 interface AddCompanyFormProps {
   open: boolean;
@@ -27,20 +36,8 @@ const AddCompanyForm: React.FC<AddCompanyFormProps> = ({ open, onClose }) => {
   const dispatch = useAppDispatch();
   const { isLoading, error } = useAppSelector((state) => state.company);
 
-  const [formData, setFormData] = useState<CreateCompanyRequest>({
-    name: '',
-    domain: '',
-    settings: JSON.stringify({
-      timezone: 'UTC',
-      currency: 'USD',
-    }),
-    subscriptionPlan: 'Basic',
-  });
-
-  const [settings, setSettings] = useState<CompanySettings>({
-    timezone: 'UTC',
-    currency: 'USD',
-  });
+  const [formData, setFormData] = useState<Omit<CreateCompanyRequest, 'settings'>>(initialForm);
+  const [settings, setSettings] = useState<CompanySettings>(initialSettings);
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -52,10 +49,7 @@ const AddCompanyForm: React.FC<AddCompanyFormProps> = ({ open, onClose }) => {
         [settingField]: value,
       };
       setSettings(newSettings);
-      setFormData(prev => ({
-        ...prev,
-        settings: JSON.stringify(newSettings),
-      }));
+      // keep only `settings` state; stringify on submit
     } else {
       setFormData(prev => ({
         ...prev,
@@ -109,7 +103,8 @@ const AddCompanyForm: React.FC<AddCompanyFormProps> = ({ open, onClose }) => {
     }
 
     try {
-      await dispatch(createCompany(formData)).unwrap();
+      const payload: CreateCompanyRequest = { ...formData, settings: JSON.stringify(settings) };
+      await dispatch(createCompany(payload)).unwrap();
       handleClose();
     } catch (error) {
       // Error is handled by Redux and displayed via the error state
@@ -117,17 +112,8 @@ const AddCompanyForm: React.FC<AddCompanyFormProps> = ({ open, onClose }) => {
   };
 
   const handleClose = () => {
-    const defaultSettings = {
-      timezone: 'UTC',
-      currency: 'USD',
-    };
-    setFormData({
-      name: '',
-      domain: '',
-      settings: JSON.stringify(defaultSettings),
-      subscriptionPlan: 'Basic',
-    });
-    setSettings(defaultSettings);
+    setFormData({ ...initialForm });
+    setSettings(() => ({ ...initialSettings }));
     setValidationErrors({});
     dispatch(clearError()); // Clear any stale errors
     onClose();

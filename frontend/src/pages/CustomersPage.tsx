@@ -31,18 +31,20 @@ import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchCustomers, createCustomer, updateCustomer, deleteCustomer } from '../store/slices/customerSlice';
 import type { Customer, CreateCustomerRequest, UpdateCustomerRequest } from '../types/customer';
 
+const initialForm: CreateCustomerRequest = { 
+  name: '', 
+  email: '', 
+  phone: '', 
+  taxId: '' 
+};
+
 const CustomersPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { customers, isLoading, error } = useAppSelector((state) => state.customer);
 
   const [open, setOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [formData, setFormData] = useState<CreateCustomerRequest>({
-    name: '',
-    email: '',
-    phone: '',
-    taxId: '',
-  });
+  const [formData, setFormData] = useState<CreateCustomerRequest>(initialForm);
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -59,37 +61,30 @@ const CustomersPage: React.FC = () => {
       });
     } else {
       setEditingCustomer(null);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        taxId: '',
-      });
+      setFormData({ ...initialForm });
     }
     setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setEditingCustomer(null);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      taxId: '',
-    });
   };
 
-  const handleSubmit = () => {
-    if (editingCustomer) {
-      dispatch(updateCustomer({
-        id: editingCustomer.id,
-        customerData: formData as UpdateCustomerRequest,
-      }));
-    } else {
-      dispatch(createCustomer(formData));
+  const handleSubmit = async () => {
+    try {
+      if (editingCustomer) {
+        await dispatch(updateCustomer({
+          id: editingCustomer.id,
+          customerData: formData as UpdateCustomerRequest,
+        })).unwrap();
+      } else {
+        await dispatch(createCustomer(formData)).unwrap();
+      }
+      setOpen(false); // Only close on successful operation
+    } catch (e) {
+      // Error is already handled by the slice and displayed in the UI
+      // Dialog stays open to show validation errors
     }
-    handleClose();
   };
 
   const handleDelete = (id: string) => {
@@ -105,6 +100,12 @@ const CustomersPage: React.FC = () => {
       [name]: value,
     }));
   };
+
+  // inside component
+  const resetForm = React.useCallback(() => {
+    setEditingCustomer(null);
+    setFormData({ ...initialForm });
+  }, []);
 
   return (
     <Container maxWidth="lg">
@@ -193,7 +194,16 @@ const CustomersPage: React.FC = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <Dialog 
+        open={open} 
+        onClose={handleClose}
+        maxWidth="sm"
+        fullWidth
+        slotProps={{
+          transition: {
+          onExited: resetForm
+        }
+      }}>
         <DialogTitle>
           {editingCustomer ? 'Edit Customer' : 'Add Customer'}
         </DialogTitle>
